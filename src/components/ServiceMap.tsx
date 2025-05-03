@@ -3,6 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Play, Pause } from 'lucide-react';
 
+// Declare the global google namespace for TypeScript
+declare global {
+  interface Window {
+    initMap?: () => void;
+    google: typeof google;
+  }
+}
+
 interface ServiceMapProps {
   coordinates: [number, number]; // [longitude, latitude]
   trackingData?: [number, number][]; // array of [longitude, latitude] points
@@ -74,8 +82,9 @@ const ServiceMap = ({ coordinates, trackingData, isLive = false }: ServiceMapPro
     }
     
     return () => {
+      // Clean up would happen here in a real implementation
       if (mapInstanceRef.current) {
-        // Clean up would happen here in a real implementation
+        // No cleanup needed for now
       }
     };
   }, [coordinates, trackingData, isLive, apiKeyEntered]);
