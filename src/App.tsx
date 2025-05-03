@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
+import Booking from "./pages/Booking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/services" element={<Services />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/booking/:serviceId" element={<Booking />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

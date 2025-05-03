@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -221,7 +220,7 @@ const Services = () => {
                   </CardContent>
                   <CardFooter className="flex justify-between items-center">
                     <div className="font-bold text-lg">₪{provider.price} / שעה</div>
-                    <Link to={`/service-provider/${provider.id}`}>
+                    <Link to={`/booking/${provider.id}`}>
                       <Button size="sm">הזמנה</Button>
                     </Link>
                   </CardFooter>
