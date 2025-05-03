@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +11,12 @@ import Footer from '@/components/Footer';
 
 const Login = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -23,6 +25,7 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
     
     // Basic validation
     if (!formData.email || !formData.password) {
@@ -31,16 +34,32 @@ const Login = () => {
         description: "יש למלא את כל השדות",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
-    // Here you would typically authenticate with your backend
-    console.log('Login data:', formData);
-    
-    toast({
-      title: "התחברות הצליחה!",
-      description: "ברוכים השבים לזאנב+",
-    });
+    // Simulate authentication API call
+    setTimeout(() => {
+      // For demo: check if email contains "provider" to determine user type
+      const userType = formData.email.includes('provider') ? 'provider' : 'owner';
+      
+      // Store user info in localStorage (in a real app, you'd store a token)
+      const userInfo = {
+        email: formData.email,
+        userType,
+        name: formData.email.split('@')[0],
+      };
+      
+      localStorage.setItem('zanav_user', JSON.stringify(userInfo));
+      
+      toast({
+        title: "התחברות הצליחה!",
+        description: "ברוכים השבים לזאנב+",
+      });
+      
+      setIsLoading(false);
+      navigate('/dashboard');
+    }, 1000);
   };
 
   return (
@@ -68,6 +87,9 @@ const Login = () => {
                 onChange={handleChange}
                 required
               />
+              <p className="text-xs text-gray-500">
+                לצורך הדגמה: כתובת מייל עם "provider" תכנס למסך נותן שירות
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -87,8 +109,12 @@ const Login = () => {
               />
             </div>
             
-            <Button type="submit" className="w-full bg-zanav-blue hover:bg-zanav-blue/90">
-              התחברות
+            <Button 
+              type="submit" 
+              className="w-full bg-zanav-blue hover:bg-zanav-blue/90"
+              disabled={isLoading}
+            >
+              {isLoading ? 'מתחבר...' : 'התחברות'}
             </Button>
           </form>
           

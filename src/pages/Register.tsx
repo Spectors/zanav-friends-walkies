@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +13,11 @@ import Footer from '@/components/Footer';
 
 const Register = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const searchParams = new URLSearchParams(location.search);
   const initialType = searchParams.get('type') || 'owner';
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -34,6 +36,7 @@ const Register = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
     
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -41,6 +44,7 @@ const Register = () => {
         description: "הסיסמאות אינן תואמות",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
     
@@ -51,16 +55,30 @@ const Register = () => {
         description: "יש למלא את כל השדות",
         variant: "destructive",
       });
+      setIsLoading(false);
       return;
     }
 
-    // Here you would typically send the data to your backend
-    console.log('Registration data:', formData);
-    
-    toast({
-      title: "ההרשמה הושלמה בהצלחה!",
-      description: "ברוכים הבאים לזאנב+",
-    });
+    // Simulate registration API call
+    setTimeout(() => {
+      // Store user info in localStorage (in a real app, you'd store a token)
+      const userInfo = {
+        email: formData.email,
+        userType: formData.userType,
+        name: `${formData.firstName} ${formData.lastName}`,
+        serviceType: formData.userType === 'provider' ? formData.serviceType : null,
+      };
+      
+      localStorage.setItem('zanav_user', JSON.stringify(userInfo));
+      
+      toast({
+        title: "ההרשמה הושלמה בהצלחה!",
+        description: "ברוכים הבאים לזאנב+",
+      });
+      
+      setIsLoading(false);
+      navigate('/dashboard');
+    }, 1000);
   };
 
   const handleTypeChange = (value: string) => {
@@ -155,8 +173,12 @@ const Register = () => {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full bg-zanav-blue hover:bg-zanav-blue/90">
-                  הרשמה כבעל כלב
+                <Button 
+                  type="submit" 
+                  className="w-full bg-zanav-blue hover:bg-zanav-blue/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'נרשם...' : 'הרשמה כבעל כלב'}
                 </Button>
               </form>
             </TabsContent>
@@ -248,8 +270,12 @@ const Register = () => {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full bg-zanav-blue hover:bg-zanav-blue/90">
-                  הרשמה כנותן שירות
+                <Button 
+                  type="submit" 
+                  className="w-full bg-zanav-blue hover:bg-zanav-blue/90"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'נרשם...' : 'הרשמה כנותן שירות'}
                 </Button>
               </form>
             </TabsContent>
