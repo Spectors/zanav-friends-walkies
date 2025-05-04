@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin, DollarSign, Check, X } from 'lucide-react';
+import { Calendar, Clock, MapPin, DollarSign, Check, X, Dog, Cat } from 'lucide-react';
 import ContactActions from './ContactActions';
 import { Link } from 'react-router-dom';
 
@@ -17,6 +17,7 @@ interface ServiceCardProps {
     clientImage?: string;
     dogName?: string;
     dogImage?: string;
+    petType?: 'dog' | 'cat';
     status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
     date: string;
     time: string;
@@ -51,6 +52,17 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
     }
   };
 
+  const getPetEmoji = () => {
+    return service.petType === 'cat' ? '😺' : '🐶';
+  };
+
+  const PetIcon = () => {
+    if (service.petType === 'cat') {
+      return <Cat className="h-4 w-4 inline mr-1" />;
+    }
+    return <Dog className="h-4 w-4 inline mr-1" />;
+  };
+
   return (
     <Card className="overflow-hidden border-t-4 hover:shadow-md transition-shadow"
           style={{ borderTopColor: 
@@ -61,7 +73,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
     >
       <CardContent className="p-4">
         <div className="flex flex-wrap items-center justify-between mb-3">
-          <h3 className="text-lg font-bold">{service.title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-bold">{service.title}</h3>
+            {service.petType && (
+              <span className="text-lg">
+                {getPetEmoji()}
+              </span>
+            )}
+          </div>
           <Badge className={`${getStatusColor(service.status)}`}>
             {getStatusText(service.status)}
           </Badge>
@@ -94,7 +113,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
                 <p className="text-sm text-gray-500">
                   {service.dogName && (
                     <span className="flex items-center">
-                      <span>🐕</span> {service.dogName}
+                      <PetIcon />
+                      {service.dogName}
                     </span>
                   )}
                 </p>

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Search, Calendar, Dog, Star } from 'lucide-react';
+import { MapPin, Search, Calendar, Dog, Star, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ExpandableListItem from '@/components/ExpandableListItem';
@@ -15,26 +16,28 @@ const serviceProviders = [
   {
     id: 1,
     name: 'יוסי לוי',
-    title: 'מטייל כלבים מקצועי',
+    title: 'מטייל כלבים וחתולים מקצועי',
     rating: 4.9,
     reviews: 127,
     location: 'תל אביב',
     image: 'https://i.pravatar.cc/150?img=11',
-    services: ['טיולים'],
+    services: ['טיולים', 'חתולים'],
     price: 50,
-    availability: 'זמין היום'
+    availability: 'זמין היום',
+    petTypes: ['כלבים', 'חתולים']
   },
   {
     id: 2,
     name: 'רותי כהן',
-    title: 'מטפלת בכלבים בביתה',
+    title: 'מטפלת בכלבים וחתולים בביתה',
     rating: 4.8,
     reviews: 95,
     location: 'חיפה',
     image: 'https://i.pravatar.cc/150?img=5',
     services: ['פנסיון', 'טיפוח'],
     price: 120,
-    availability: 'זמינה ממחר'
+    availability: 'זמינה ממחר',
+    petTypes: ['כלבים', 'חתולים']
   },
   {
     id: 3,
@@ -46,43 +49,47 @@ const serviceProviders = [
     image: 'https://i.pravatar.cc/150?img=3',
     services: ['אילוף'],
     price: 200,
-    availability: 'זמין השבוע'
+    availability: 'זמין השבוע',
+    petTypes: ['כלבים']
   },
   {
     id: 4,
     name: 'מיכל פרץ',
-    title: 'מטיילת כלבים ומטפלת',
+    title: 'מטיילת כלבים וחתולים ומטפלת',
     rating: 4.7,
     reviews: 83,
     location: 'רמת גן',
     image: 'https://i.pravatar.cc/150?img=9',
     services: ['טיולים', 'פנסיון'],
     price: 60,
-    availability: 'זמינה היום'
+    availability: 'זמינה היום',
+    petTypes: ['כלבים', 'חתולים']
   },
   {
     id: 5,
     name: 'אלי דוד',
-    title: 'ספר כלבים מקצועי',
+    title: 'ספר כלבים וחתולים מקצועי',
     rating: 4.6,
     reviews: 42,
     location: 'ראשון לציון',
     image: 'https://i.pravatar.cc/150?img=12',
     services: ['טיפוח'],
     price: 150,
-    availability: 'זמין היום'
+    availability: 'זמין היום',
+    petTypes: ['כלבים', 'חתולים']
   },
   {
     id: 6,
     name: 'נועה שלום',
-    title: 'מטפלת ומאלפת כלבים',
+    title: 'מטפלת ומאלפת חיות מחמד',
     rating: 4.9,
     reviews: 56,
     location: 'הרצליה',
     image: 'https://i.pravatar.cc/150?img=23',
     services: ['אילוף', 'טיולים'],
     price: 120,
-    availability: 'זמינה ממחר'
+    availability: 'זמינה ממחר',
+    petTypes: ['כלבים', 'חתולים']
   },
 ];
 
@@ -90,6 +97,7 @@ const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedService, setSelectedService] = useState<string>('');
   const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [selectedPetType, setSelectedPetType] = useState<string>('');
   
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -106,15 +114,21 @@ const Services = () => {
     
     const matchesLocation = selectedLocation === '' || 
       provider.location === selectedLocation;
+      
+    const matchesPetType = selectedPetType === '' ||
+      (provider.petTypes && provider.petTypes.includes(selectedPetType));
     
-    return matchesSearch && matchesService && matchesLocation;
+    return matchesSearch && matchesService && matchesLocation && matchesPetType;
   });
 
   // Get unique locations for the filter
   const locations = Array.from(new Set(serviceProviders.map(p => p.location)));
   
   // Available service types
-  const serviceTypes = ['טיולים', 'פנסיון', 'טיפוח', 'אילוף'];
+  const serviceTypes = ['טיולים', 'פנסיון', 'טיפוח', 'אילוף', 'חתולים'];
+  
+  // Pet types
+  const petTypes = ['כלבים', 'חתולים'];
 
   // Render preview content for service provider items
   const renderProviderPreview = (provider: any) => (
@@ -165,6 +179,19 @@ const Services = () => {
           ))}
         </div>
         
+        <div className="mt-4 flex flex-wrap gap-2">
+          {provider.petTypes && provider.petTypes.map((petType: string) => (
+            <Badge key={petType} variant="outline" className={
+              petType === 'כלבים' 
+                ? "bg-blue-50 text-zanav-blue border-zanav-blue flex items-center gap-1"
+                : "bg-purple-50 text-purple-700 border-purple-300 flex items-center gap-1"
+            }>
+              {petType === 'כלבים' ? <Dog className="h-3 w-3" /> : <Cat className="h-3 w-3" />}
+              {petType}
+            </Badge>
+          ))}
+        </div>
+        
         <div className="mt-4 flex items-center gap-2">
           <Calendar size={16} className="text-green-600" />
           <span className="text-sm text-green-600 font-medium">{provider.availability}</span>
@@ -195,8 +222,8 @@ const Services = () => {
         <section className="bg-gradient-to-r from-zanav-blue to-blue-500 py-12 text-white">
           <div className="container-custom">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold mb-2">מצאו את השירות המושלם</h1>
-              <p>חפשו בין מגוון נותני שירות איכותיים לכלב שלכם</p>
+              <h1 className="text-3xl font-bold mb-2">מצאו את השירות המושלם 🐶 😺</h1>
+              <p>חפשו בין מגוון נותני שירות איכותיים לחיית המחמד שלכם</p>
             </div>
             
             <div className="bg-white p-4 rounded-lg shadow-md flex flex-col md:flex-row gap-4">
@@ -212,7 +239,7 @@ const Services = () => {
                 </div>
               </div>
               
-              <div className="md:w-1/4">
+              <div className="md:w-1/5">
                 <Select value={selectedService} onValueChange={setSelectedService}>
                   <SelectTrigger>
                     <SelectValue placeholder="סוג שירות" />
@@ -228,7 +255,7 @@ const Services = () => {
                 </Select>
               </div>
               
-              <div className="md:w-1/4">
+              <div className="md:w-1/5">
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
                   <SelectTrigger>
                     <SelectValue placeholder="מיקום" />
@@ -238,6 +265,22 @@ const Services = () => {
                     {locations.map((location) => (
                       <SelectItem key={location} value={location}>
                         {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="md:w-1/5">
+                <Select value={selectedPetType} onValueChange={setSelectedPetType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="סוג חיה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">כל החיות</SelectItem>
+                    {petTypes.map((petType) => (
+                      <SelectItem key={petType} value={petType}>
+                        {petType === 'כלבים' ? '🐶 כלבים' : '😺 חתולים'}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -263,9 +306,13 @@ const Services = () => {
                   image={provider.image}
                   badge={
                     <div className="flex gap-1">
-                      {provider.services.map((service) => (
-                        <Badge key={service} variant="outline" className="bg-blue-50 text-zanav-blue border-zanav-blue">
-                          {service}
+                      {provider.petTypes && provider.petTypes.map((petType) => (
+                        <Badge key={petType} variant="outline" className={
+                          petType === 'כלבים' 
+                            ? "bg-blue-50 text-zanav-blue border-zanav-blue"
+                            : "bg-purple-50 text-purple-700 border-purple-300"
+                        }>
+                          {petType === 'כלבים' ? '🐶' : '😺'}
                         </Badge>
                       ))}
                     </div>
@@ -279,8 +326,11 @@ const Services = () => {
             {filteredProviders.length === 0 && (
               <Card className="overflow-hidden">
                 <CardContent className="text-center py-16">
-                  <Dog className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-                  <h3 className="text-xl font-bold mb-2">לא נמצאו תוצאות</h3>
+                  <div className="flex justify-center gap-4">
+                    <Dog className="h-16 w-16 text-gray-300" />
+                    <Cat className="h-16 w-16 text-gray-300" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 mt-4">לא נמצאו תוצאות</h3>
                   <p className="text-gray-600">נסו שוב עם מסננים אחרים</p>
                 </CardContent>
               </Card>

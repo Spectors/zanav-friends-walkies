@@ -2,7 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dog, Home } from "lucide-react";
+import { Dog, Home, Cat } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -24,7 +24,10 @@ const NotFound = () => {
         <div className="container-custom text-center">
           <div className="flex justify-center mb-6">
             <div className="relative">
-              <Dog className="h-24 w-24 text-primary animate-bounce" />
+              <div className="flex gap-4">
+                <Dog className="h-24 w-24 text-primary animate-bounce" />
+                <Cat className="h-24 w-24 text-secondary animate-bounce" style={{ animationDelay: "0.5s" }} />
+              </div>
               <span className="absolute top-0 right-0 text-4xl">❓</span>
             </div>
           </div>
@@ -33,7 +36,7 @@ const NotFound = () => {
           <p className="text-xl md:text-2xl text-gray-600 mb-8">אופס! הדף שחיפשת לא נמצא 🐾</p>
           
           <p className="text-gray-500 mb-8 max-w-md mx-auto">
-            נראה שהכלב ברח עם הדף שחיפשת! אל דאגה, יש לנו הרבה דפים נהדרים אחרים שתוכל לבקר בהם.
+            נראה שהכלב והחתול ברחו עם הדף שחיפשת! אל דאגה, יש לנו הרבה דפים נהדרים אחרים שתוכל לבקר בהם.
           </p>
           
           <div className="flex flex-wrap justify-center gap-4">
