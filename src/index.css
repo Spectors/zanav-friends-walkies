@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 260 20% 96%;
+    --background: 260 20% 97%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -63,6 +63,11 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold;
   }
+  
+  /* Improved focus styles for accessibility */
+  *:focus-visible {
+    @apply outline-2 outline-primary outline-offset-2;
+  }
 }
 
 @layer components {
@@ -75,7 +80,7 @@
   }
 
   .section {
-    @apply py-16 md:py-24;
+    @apply py-12 md:py-20;
   }
 
   .container-custom {
@@ -87,10 +92,100 @@
   }
   
   .badge-emoji {
-    @apply inline-flex items-center bg-muted px-2 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center bg-muted px-2.5 py-1 rounded-full text-xs font-medium;
   }
   
   .emoji-icon {
     @apply mx-1;
   }
+  
+  /* Mobile-friendly improvements */
+  .mobile-container {
+    @apply px-4 sm:px-6;
+  }
+  
+  .mobile-full-width {
+    @apply -mx-4 sm:mx-0;
+  }
+  
+  .card-hover {
+    @apply hover:-translate-y-1 transition-transform duration-300;
+  }
+  
+  /* Gen Z vibrant gradients */
+  .bg-gradient-vibrant {
+    @apply bg-gradient-to-r from-primary via-secondary to-accent;
+  }
+  
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
+  }
+  
+  /* Service Status Indicators */
+  .status-scheduled {
+    @apply bg-blue-100 text-blue-800 border-blue-200;
+  }
+  
+  .status-in-progress {
+    @apply bg-amber-100 text-amber-800 border-amber-200;
+  }
+  
+  .status-completed {
+    @apply bg-green-100 text-green-800 border-green-200;
+  }
+  
+  .status-cancelled {
+    @apply bg-red-100 text-red-800 border-red-200;
+  }
+  
+  /* Improved mobile tap targets */
+  @media (max-width: 640px) {
+    button, a, select, input[type="checkbox"], input[type="radio"] {
+      @apply min-h-[44px] min-w-[44px];
+    }
+  }
+}
+
+/* Animation classes */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Emoji animations */
+.emoji-pop {
+  display: inline-block;
+  transform-origin: center;
+  transition: transform 0.2s;
+}
+
+.emoji-pop:hover {
+  transform: scale(1.5);
+}
+
+/* Improved scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
 }

@@ -47,12 +47,6 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const serviceEmojis = [
-    { emoji: '🐕', text: 'טיולים' },
-    { emoji: '🍖', text: 'האכלה' },
-    { emoji: '🛡️', text: 'בטוח ומאומת' },
-  ];
-
   return (
     <header className="py-4 bg-gradient-to-r from-purple-50 to-pink-50 shadow-sm sticky top-0 z-50">
       <div className="container-custom flex items-center justify-between">
@@ -60,16 +54,6 @@ const Navbar = () => {
           <Dog className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">זנב+</span>
         </Link>
-
-        {/* Services Emojis - Desktop */}
-        <div className="hidden md:flex gap-3 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm">
-          {serviceEmojis.map((item, index) => (
-            <span key={index} className="badge-emoji">
-              <span className="emoji-icon">{item.emoji}</span>
-              <span>{item.text}</span>
-            </span>
-          ))}
-        </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
@@ -134,16 +118,6 @@ const Navbar = () => {
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-      </div>
-
-      {/* Services Emojis - Mobile */}
-      <div className="md:hidden flex gap-2 justify-center mt-2 px-4 overflow-x-auto pb-2">
-        {serviceEmojis.map((item, index) => (
-          <span key={index} className="badge-emoji whitespace-nowrap">
-            <span className="emoji-icon">{item.emoji}</span>
-            <span>{item.text}</span>
-          </span>
-        ))}
       </div>
 
       {/* Mobile Menu */}
