@@ -15,8 +15,8 @@ interface ServiceCardProps {
     providerImage?: string;
     clientName?: string;
     clientImage?: string;
-    dogName?: string;
-    dogImage?: string;
+    petName?: string;
+    petImage?: string;
     petType?: 'dog' | 'cat';
     status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
     date: string;
@@ -28,7 +28,7 @@ interface ServiceCardProps {
     phoneNumber: string;
     serviceType: string;
   };
-  viewType: 'provider' | 'dogOwner';
+  viewType: 'provider' | 'animalOwner';
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
@@ -87,7 +87,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
         </div>
         
         <div className="grid gap-4 mb-4">
-          {viewType === 'dogOwner' && service.providerName && (
+          {viewType === 'animalOwner' && service.providerName && (
             <div className="flex items-center gap-3">
               {service.providerImage && (
                 <div className="w-12 h-12 rounded-full overflow-hidden">
@@ -111,10 +111,10 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
               <div>
                 <p className="font-medium">בעלים: {service.clientName}</p>
                 <p className="text-sm text-gray-500">
-                  {service.dogName && (
+                  {service.petName && (
                     <span className="flex items-center">
                       <PetIcon />
-                      {service.dogName}
+                      {service.petName}
                     </span>
                   )}
                 </p>

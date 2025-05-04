@@ -1,7 +1,7 @@
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Dog, MapPin, Calendar, Users } from 'lucide-react';
+import { Dog, MapPin, Calendar, Users, Cat, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -16,14 +16,14 @@ const HomePage = () => {
           <div className="container-custom grid md:grid-cols-2 gap-12 items-center">
             <div className="order-2 md:order-1">
               <h1 className="text-4xl md:text-5xl font-bold text-zanav-dark mb-6">
-                מצאו את השירות המושלם לכלב שלכם
+                מצאו את השירות המושלם לחיית המחמד שלכם
               </h1>
               <p className="text-lg mb-8 text-gray-600">
-                זאנב+ מחברת בין בעלי כלבים לבין מטפלים מקצועיים ואמינים. טיולים, פנסיון, טיפוח ועוד במקום אחד.
+                זאנב+ מחברת בין בעלי חיות מחמד לבין מטפלים מקצועיים ואמינים. טיולים, פנסיון, טיפוח ועוד במקום אחד. 🐶😺
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/register?type=owner">
-                  <Button className="w-full sm:w-auto button-primary">הרשמה כבעל כלב</Button>
+                  <Button className="w-full sm:w-auto button-primary">הרשמה כבעל חיית מחמד</Button>
                 </Link>
                 <Link to="/register?type=provider">
                   <Button variant="outline" className="w-full sm:w-auto border-zanav-blue text-zanav-blue hover:bg-zanav-blue hover:text-white">
@@ -34,8 +34,8 @@ const HomePage = () => {
             </div>
             <div className="order-1 md:order-2 flex justify-center">
               <img 
-                src="https://images.unsplash.com/photo-1560743641-3914f2c45636?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80" 
-                alt="כלב מאושר עם מטפל" 
+                src="https://images.unsplash.com/photo-1581888227599-779811939961?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80" 
+                alt="כלב וחתול מאושרים" 
                 className="rounded-lg shadow-xl max-w-full animate-float"
               />
             </div>
@@ -48,7 +48,7 @@ const HomePage = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">השירותים שלנו</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                מגוון רחב של שירותים מקצועיים לכלב שלך, בהתאמה אישית לצרכים שלו
+                מגוון רחב של שירותים מקצועיים לחיית המחמד שלך, בהתאמה אישית לצרכים שלה
               </p>
             </div>
             
@@ -100,7 +100,7 @@ const HomePage = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">איך זה עובד?</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                בכמה צעדים פשוטים תוכלו להתחבר למטפלים מקצועיים לכלב שלכם
+                בכמה צעדים פשוטים תוכלו להתחבר למטפלים מקצועיים לחיית המחמד שלכם
               </p>
             </div>
             
@@ -109,7 +109,7 @@ const HomePage = () => {
                 {
                   step: "1",
                   title: "הרשמה מהירה",
-                  description: "הירשמו בקלות, צרו פרופיל לכלב שלכם עם הצרכים הייחודיים שלו"
+                  description: "הירשמו בקלות, צרו פרופיל לחיית המחמד שלכם עם הצרכים הייחודיים שלה"
                 },
                 {
                   step: "2",
@@ -133,8 +133,8 @@ const HomePage = () => {
                     </div>
                   </div>
                   {index < 2 && (
-                    <div className="hidden md:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 text-zanav-blue text-4xl font-light">
-                      &#8592;
+                    <div className="hidden md:block absolute top-1/2 left-0 transform -translate-x-1/2 -translate-y-1/2 text-zanav-blue text-4xl font-light">
+                      <ArrowLeft size={32} className="text-zanav-blue" />
                     </div>
                   )}
                 </div>
@@ -149,7 +149,7 @@ const HomePage = () => {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">לקוחות מרוצים</h2>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                מה אומרים עלינו בעלי כלבים שכבר נעזרו בשירותים שלנו
+                מה אומרים עלינו בעלי חיות מחמד שכבר נעזרו בשירותים שלנו
               </p>
             </div>
             
@@ -163,12 +163,12 @@ const HomePage = () => {
                 {
                   name: "מיכל לוי",
                   image: "https://i.pravatar.cc/150?img=5",
-                  text: "השירות פשוט מצוין. מצאתי פנסיון מעולה כשיצאנו לחופשה והיה לי שקט נפשי."
+                  text: "השירות פשוט מצוין. מצאתי פנסיון מעולה כשיצאנו לחופשה והיה לי שקט נפשי בידיעה שהחתול שלי בידיים טובות."
                 },
                 {
                   name: "יוסי אברהם",
                   image: "https://i.pravatar.cc/150?img=3",
-                  text: "מטפחת הכלבים שמצאתי דרך האתר היא מקצועית ואדיבה. הכלב שלי נראה נהדר!"
+                  text: "מטפח החיות שמצאתי דרך האתר הוא מקצועי ואדיב. החיות שלי נראות נהדר!"
                 }
               ].map((testimonial, index) => (
                 <div key={index} className="bg-white rounded-lg p-6 shadow-md border border-gray-100">
