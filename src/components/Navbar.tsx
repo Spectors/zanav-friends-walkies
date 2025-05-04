@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, Dog, LogOut } from 'lucide-react';
+import { Menu, X, User, Dog, LogOut, Phone, Heart, Calendar, PawPrint } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -47,28 +47,48 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const serviceEmojis = [
+    { emoji: '🐕', text: 'טיולים' },
+    { emoji: '🍖', text: 'האכלה' },
+    { emoji: '🛡️', text: 'בטוח ומאומת' },
+  ];
+
   return (
-    <header className="py-4 bg-white shadow-sm sticky top-0 z-50">
+    <header className="py-4 bg-gradient-to-r from-purple-50 to-pink-50 shadow-sm sticky top-0 z-50">
       <div className="container-custom flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <Dog className="h-8 w-8 text-zanav-blue" />
-          <span className="text-xl font-bold text-zanav-dark">זאנב+</span>
+          <Dog className="h-8 w-8 text-primary" />
+          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">זנב+</span>
         </Link>
+
+        {/* Services Emojis - Desktop */}
+        <div className="hidden md:flex gap-3 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-sm">
+          {serviceEmojis.map((item, index) => (
+            <span key={index} className="badge-emoji">
+              <span className="emoji-icon">{item.emoji}</span>
+              <span>{item.text}</span>
+            </span>
+          ))}
+        </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          <Link to="/services" className="text-zanav-dark hover:text-zanav-blue transition-colors">
+          <Link to="/services" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+            <PawPrint size={16} />
             שירותים
           </Link>
           {isLoggedIn && (
-            <Link to="/dashboard" className="text-zanav-dark hover:text-zanav-blue transition-colors">
+            <Link to="/dashboard" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+              <Calendar size={16} />
               לוח בקרה
             </Link>
           )}
-          <Link to="/about" className="text-zanav-dark hover:text-zanav-blue transition-colors">
+          <Link to="/about" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+            <Heart size={16} />
             אודות
           </Link>
-          <Link to="/contact" className="text-zanav-dark hover:text-zanav-blue transition-colors">
+          <Link to="/contact" className="text-foreground hover:text-primary transition-colors flex items-center gap-1">
+            <Phone size={16} />
             צור קשר
           </Link>
         </nav>
@@ -78,8 +98,8 @@ const Navbar = () => {
             <>
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">שלום, {userInfo?.name || 'משתמש'}</span>
-                <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                  {userInfo?.userType === 'provider' ? 'נותן שירות' : 'בעל כלב'}
+                <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
+                  {userInfo?.userType === 'provider' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                 </span>
               </div>
               <Button 
@@ -100,7 +120,7 @@ const Navbar = () => {
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-zanav-blue hover:bg-zanav-blue/90">הרשמה</Button>
+                <Button className="bg-primary hover:bg-primary/90">הרשמה</Button>
               </Link>
             </>
           )}
@@ -108,7 +128,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-zanav-dark p-2"
+          className="md:hidden text-foreground p-2"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle menu"
         >
@@ -116,38 +136,52 @@ const Navbar = () => {
         </button>
       </div>
 
+      {/* Services Emojis - Mobile */}
+      <div className="md:hidden flex gap-2 justify-center mt-2 px-4 overflow-x-auto pb-2">
+        {serviceEmojis.map((item, index) => (
+          <span key={index} className="badge-emoji whitespace-nowrap">
+            <span className="emoji-icon">{item.emoji}</span>
+            <span>{item.text}</span>
+          </span>
+        ))}
+      </div>
+
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden py-4 px-4 bg-white border-t">
+        <div className="md:hidden py-4 px-4 bg-white/80 backdrop-blur-sm border-t">
           <nav className="flex flex-col gap-4">
             <Link
               to="/services"
-              className="text-zanav-dark hover:text-zanav-blue transition-colors py-2"
+              className="text-foreground hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
+              <PawPrint size={18} />
               שירותים
             </Link>
             {isLoggedIn && (
               <Link
                 to="/dashboard"
-                className="text-zanav-dark hover:text-zanav-blue transition-colors py-2"
+                className="text-foreground hover:text-primary transition-colors py-2 flex items-center gap-2"
                 onClick={() => setIsMenuOpen(false)}
               >
+                <Calendar size={18} />
                 לוח בקרה
               </Link>
             )}
             <Link
               to="/about"
-              className="text-zanav-dark hover:text-zanav-blue transition-colors py-2"
+              className="text-foreground hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
+              <Heart size={18} />
               אודות
             </Link>
             <Link
               to="/contact" 
-              className="text-zanav-dark hover:text-zanav-blue transition-colors py-2"
+              className="text-foreground hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
+              <Phone size={18} />
               צור קשר
             </Link>
             
@@ -156,8 +190,8 @@ const Navbar = () => {
                 <div className="py-2">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm font-medium">שלום, {userInfo?.name || 'משתמש'}</span>
-                    <span className="text-xs bg-gray-100 px-2 py-1 rounded">
-                      {userInfo?.userType === 'provider' ? 'נותן שירות' : 'בעל כלב'}
+                    <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
+                      {userInfo?.userType === 'provider' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                     </span>
                   </div>
                   <Button 
@@ -179,7 +213,7 @@ const Navbar = () => {
                   <Button variant="outline" className="w-full justify-center">התחברות</Button>
                 </Link>
                 <Link to="/register" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full justify-center bg-zanav-blue hover:bg-zanav-blue/90">הרשמה</Button>
+                  <Button className="w-full justify-center bg-primary hover:bg-primary/90">הרשמה</Button>
                 </Link>
               </div>
             )}

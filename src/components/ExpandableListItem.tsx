@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Card } from '@/components/ui/card';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Phone } from 'lucide-react';
 
 interface ExpandableListItemProps {
   title: string;
@@ -11,6 +11,7 @@ interface ExpandableListItemProps {
   badge?: React.ReactNode;
   previewContent: React.ReactNode;
   expandedContent: React.ReactNode;
+  phoneNumber?: string;
 }
 
 const ExpandableListItem = ({
@@ -20,8 +21,14 @@ const ExpandableListItem = ({
   badge,
   previewContent,
   expandedContent,
+  phoneNumber,
 }: ExpandableListItemProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handleCall = (e: React.MouseEvent, number: string) => {
+    e.stopPropagation();
+    window.location.href = `tel:${number}`;
+  };
 
   return (
     <Collapsible
@@ -52,6 +59,16 @@ const ExpandableListItem = ({
             <div className="hidden md:flex items-center flex-1 text-sm text-gray-500 px-2">
               {previewContent}
             </div>
+            
+            {/* Phone button */}
+            {phoneNumber && (
+              <div 
+                className="mr-2 p-2 rounded-full hover:bg-gray-100" 
+                onClick={(e) => handleCall(e, phoneNumber)}
+              >
+                <Phone size={18} className="text-zanav-blue" />
+              </div>
+            )}
             
             {/* Toggle icon */}
             <div className="ml-auto pl-3">

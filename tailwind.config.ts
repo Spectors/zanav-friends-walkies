@@ -65,8 +65,8 @@ export default {
 				},
 				// Custom colors
 				zanav: {
-					blue: '#4A8FE7',
-					orange: '#FF914D',
+					blue: '#9b87f5', // Updated to match new primary purple
+					orange: '#D946EF', // Updated to match new secondary pink
 					green: '#63C74D',
 					dark: '#2D3748',
 					light: '#F8F9FA',
@@ -101,12 +101,21 @@ export default {
 					'50%': {
 						transform: 'translateY(-10px)',
 					},
-				}
+				},
+				'pulse-soft': {
+					'0%, 100%': {
+						opacity: '1',
+					},
+					'50%': {
+						opacity: '0.8',
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'float': 'float 6s ease-in-out infinite',
+				'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
 			}
 		}
 	},
