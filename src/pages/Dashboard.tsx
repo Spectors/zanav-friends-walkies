@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -10,6 +10,7 @@ import { MapPin, Calendar, Clock, ArrowRight, Check, Phone, Shield, Syringe, Dog
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ServiceMap from '@/components/ServiceMap';
+import ExpandableListItem from '@/components/ExpandableListItem';
 
 // Sample data - in a real app this would come from an API
 const dogServices = [
@@ -281,6 +282,194 @@ const Dashboard = () => {
     return null; // Will redirect in useEffect
   }
 
+  // Render preview content for service items
+  const renderServicePreview = (service: any) => (
+    <div className="flex items-center gap-4">
+      <div className="flex items-center gap-1">
+        <Calendar size={14} className="text-zanav-blue" />
+        <span>{service.date}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <MapPin size={14} className="text-zanav-blue" />
+        <span className="truncate max-w-[150px]">{service.location}</span>
+      </div>
+    </div>
+  );
+
+  // Render expanded content for service items
+  const renderServiceExpanded = (service: any, isAvailable = true) => (
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="md:col-span-2">
+          <div className="w-full h-48 rounded overflow-hidden mb-4">
+            <img 
+              src={service.image} 
+              alt={service.dogName} 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="text-xl font-bold mb-3">{service.dogName}</h3>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <MapPin size={16} className="text-zanav-blue" />
+              <span className="text-sm">{service.location}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Calendar size={16} className="text-zanav-blue" />
+              <span className="text-sm">{service.date}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Clock size={16} className="text-zanav-blue" />
+              <span className="text-sm">
+                {service.time} • {service.duration < 60 ? `${service.duration} דקות` : `${Math.floor(service.duration / 60)} שעות`}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 className="font-medium mb-1">הערות:</h4>
+          <p className="text-sm text-gray-600 mb-4">{service.notes}</p>
+          
+          {isAvailable ? (
+            <Button 
+              className="bg-zanav-blue w-full mt-4"
+              onClick={() => {
+                setSelectedService(service);
+                setShowDialog(true);
+              }}
+            >
+              קבל שירות
+            </Button>
+          ) : service.status === 'active' ? (
+            <Button 
+              className="bg-green-500 hover:bg-green-600 w-full mt-4" 
+              onClick={() => handleStartTracking(service)}
+            >
+              עקוב אחר מסלול
+            </Button>
+          ) : (
+            <Button variant="outline" disabled className="w-full mt-4">
+              <Check className="mr-1" size={16} />
+              הושלם
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render preview content for dog items
+  const renderDogPreview = (dog: any) => (
+    <div className="flex gap-4">
+      <span>{dog.breed}</span>
+      <span>{dog.age} שנים</span>
+    </div>
+  );
+
+  // Render expanded content for dog items
+  const renderDogExpanded = (dog: any) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="md:col-span-2">
+        <div className="w-full h-48 rounded overflow-hidden mb-4">
+          <img 
+            src={dog.image} 
+            alt={dog.name} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      </div>
+      
+      {/* Vaccines Section */}
+      <div>
+        <h4 className="font-medium mb-2 flex items-center gap-1">
+          <Syringe size={16} className="text-zanav-blue" />
+          חיסונים
+        </h4>
+        <div className="space-y-1 mb-4">
+          {dog.vaccines.map((vaccine: any, idx: number) => (
+            <div key={idx} className="flex justify-between items-center text-sm">
+              <span>{vaccine.name}</span>
+              <Badge className={vaccine.status === 'valid' ? 'bg-green-500' : 'bg-amber-500'}>
+                {vaccine.dueDate}
+              </Badge>
+            </div>
+          ))}
+        </div>
+        
+        {/* Insurance Section */}
+        <div className="mt-4">
+          <h4 className="font-medium mb-2 flex items-center gap-1">
+            <Shield size={16} className="text-zanav-blue" />
+            ביטוח
+          </h4>
+          {dog.insurance ? (
+            <div className="text-sm">
+              <div className="flex justify-between">
+                <span>חברה:</span>
+                <span>{dog.insurance.provider}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>תוכנית:</span>
+                <span>{dog.insurance.plan}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>בתוקף עד:</span>
+                <span>{dog.insurance.validUntil}</span>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-500">לא קיים ביטוח</div>
+          )}
+        </div>
+      </div>
+      
+      {/* Actions */}
+      <div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button 
+            className="bg-red-500 hover:bg-red-600"
+            onClick={() => handleEmergency(dog)}
+          >
+            <Bell size={16} className="mr-1" />
+            חירום
+          </Button>
+          
+          <Button 
+            className="bg-zanav-blue"
+            onClick={() => handleBookVet(dog)}
+          >
+            <Heart size={16} className="mr-1" />
+            קביעת תור
+          </Button>
+          
+          <Button 
+            variant="outline"
+            onClick={() => handleReportMissing(dog)}
+          >
+            <Dog size={16} className="mr-1" />
+            דווח על היעדרות
+          </Button>
+          
+          {!dog.insurance && (
+            <Button 
+              variant="outline"
+              onClick={() => handleInsurance(dog)}
+            >
+              <Shield size={16} className="mr-1" />
+              רכוש ביטוח
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -307,266 +496,88 @@ const Dashboard = () => {
               )}
             </TabsList>
             
-            <TabsContent value="available" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {dogServices.map((service) => (
-                  <Card key={service.id} className="overflow-hidden">
-                    <CardHeader className="p-0">
-                      <div className="relative h-48">
-                        <img 
-                          src={service.image} 
-                          alt={service.dogName} 
-                          className="w-full h-full object-cover"
-                        />
-                        <Badge className="absolute top-3 right-3 bg-zanav-blue">
-                          {service.serviceType}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold">{service.dogName}</h3>
-                        <span className="text-sm text-gray-500">{service.dogBreed}</span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.location}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.date}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Clock size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.time} • {service.duration < 60 ? `${service.duration} דקות` : `${Math.floor(service.duration / 60)} שעות`}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <h4 className="font-medium mb-1">הערות:</h4>
-                        <p className="text-sm text-gray-600">{service.notes}</p>
-                      </div>
-                    </CardContent>
-                    
-                    <CardFooter className="flex justify-end">
-                      <Button 
-                        className="bg-zanav-blue" 
-                        onClick={() => {
-                          setSelectedService(service);
-                          setShowDialog(true);
-                        }}
-                      >
-                        קבל שירות
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-              
-              {dogServices.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">אין שירותים זמינים כרגע</p>
-                </div>
+            {/* Available Services Tab - List View */}
+            <TabsContent value="available" className="space-y-4">
+              {dogServices.length > 0 ? (
+                dogServices.map((service) => (
+                  <ExpandableListItem
+                    key={service.id}
+                    title={service.dogName}
+                    subtitle={service.dogBreed}
+                    image={service.image}
+                    badge={<Badge className="bg-zanav-blue">{service.serviceType}</Badge>}
+                    previewContent={renderServicePreview(service)}
+                    expandedContent={renderServiceExpanded(service)}
+                  />
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <p className="text-gray-500">אין שירותים זמינים כרגע</p>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
             
-            <TabsContent value="mine" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myServices.map((service) => (
-                  <Card key={service.id} className="overflow-hidden">
-                    <CardHeader className="p-0">
-                      <div className="relative h-48">
-                        <img 
-                          src={service.image} 
-                          alt={service.dogName} 
-                          className="w-full h-full object-cover"
-                        />
-                        <Badge 
-                          className={`absolute top-3 right-3 ${
-                            service.status === 'active' ? 'bg-green-500' : 
-                            service.status === 'completed' ? 'bg-gray-500' : 'bg-zanav-blue'
-                          }`}
-                        >
-                          {service.status === 'active' ? 'פעיל' : 
-                           service.status === 'completed' ? 'הושלם' : 'ממתין'}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold">{service.dogName}</h3>
-                        <span className="text-sm text-gray-500">{service.dogBreed}</span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <MapPin size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.location}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.date}</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <Clock size={16} className="text-zanav-blue" />
-                          <span className="text-sm">{service.time} • {service.duration < 60 ? `${service.duration} דקות` : `${Math.floor(service.duration / 60)} שעות`}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                    
-                    <CardFooter className="flex justify-end">
-                      {service.status === 'active' && (
-                        <Button 
-                          className="bg-green-500 hover:bg-green-600"
-                          onClick={() => handleStartTracking(service)}
-                        >
-                          עקוב אחר מסלול
-                        </Button>
-                      )}
-                      
-                      {service.status === 'completed' && (
-                        <Button variant="outline" disabled>
-                          <Check className="mr-1" size={16} />
-                          הושלם
-                        </Button>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-              
-              {myServices.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">אין שירותים פעילים כרגע</p>
-                </div>
+            {/* My Services Tab - List View */}
+            <TabsContent value="mine" className="space-y-4">
+              {myServices.length > 0 ? (
+                myServices.map((service) => (
+                  <ExpandableListItem
+                    key={service.id}
+                    title={service.dogName}
+                    subtitle={service.dogBreed}
+                    image={service.image}
+                    badge={
+                      <Badge 
+                        className={`${
+                          service.status === 'active' ? 'bg-green-500' : 
+                          service.status === 'completed' ? 'bg-gray-500' : 'bg-zanav-blue'
+                        }`}
+                      >
+                        {service.status === 'active' ? 'פעיל' : 
+                         service.status === 'completed' ? 'הושלם' : 'ממתין'}
+                      </Badge>
+                    }
+                    previewContent={renderServicePreview(service)}
+                    expandedContent={renderServiceExpanded(service, false)}
+                  />
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <p className="text-gray-500">אין שירותים פעילים כרגע</p>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
 
-            {/* New Tab Content for My Dogs */}
-            <TabsContent value="mydogs" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myDogs.map((dog) => (
-                  <Card key={dog.id} className="overflow-hidden">
-                    <CardHeader className="p-0">
-                      <div className="relative h-48">
-                        <img 
-                          src={dog.image} 
-                          alt={dog.name}
-                          className="w-full h-full object-cover"
-                        />
-                        <Badge className="absolute top-3 right-3 bg-green-500">
-                          {dog.breed}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold">{dog.name}</h3>
-                        <span className="text-sm text-gray-500">{dog.age} שנים</span>
-                      </div>
-                      
-                      {/* Vaccines Section */}
-                      <div className="mt-4">
-                        <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <Syringe size={16} className="text-zanav-blue" />
-                          חיסונים
-                        </h4>
-                        <div className="space-y-1">
-                          {dog.vaccines.map((vaccine, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-sm">
-                              <span>{vaccine.name}</span>
-                              <Badge className={vaccine.status === 'valid' ? 'bg-green-500' : 'bg-amber-500'}>
-                                {vaccine.dueDate}
-                              </Badge>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Insurance Section */}
-                      <div className="mt-4 pt-4 border-t border-gray-100">
-                        <h4 className="font-medium mb-2 flex items-center gap-1">
-                          <Shield size={16} className="text-zanav-blue" />
-                          ביטוח
-                        </h4>
-                        {dog.insurance ? (
-                          <div className="text-sm">
-                            <div className="flex justify-between">
-                              <span>חברה:</span>
-                              <span>{dog.insurance.provider}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>תוכנית:</span>
-                              <span>{dog.insurance.plan}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>בתוקף עד:</span>
-                              <span>{dog.insurance.validUntil}</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-sm text-gray-500">לא קיים ביטוח</div>
-                        )}
-                      </div>
-                    </CardContent>
-                    
-                    <CardFooter className="flex flex-wrap gap-2 justify-end">
-                      {/* Emergency Button */}
-                      <Button 
-                        className="bg-red-500 hover:bg-red-600"
-                        onClick={() => handleEmergency(dog)}
-                      >
-                        <Bell size={16} />
-                        חירום
-                      </Button>
-                      
-                      {/* Vet Booking Button */}
-                      <Button 
-                        className="bg-zanav-blue"
-                        onClick={() => handleBookVet(dog)}
-                      >
-                        <Heart size={16} />
-                        קביעת תור לוטרינר
-                      </Button>
-                      
-                      {/* More Options */}
-                      <div className="w-full flex gap-2 justify-end mt-2">
-                        <Button 
-                          variant="outline"
-                          onClick={() => handleReportMissing(dog)}
-                        >
-                          <Dog size={16} />
-                          דווח על היעדרות
-                        </Button>
-                        
-                        {!dog.insurance && (
-                          <Button 
-                            variant="outline"
-                            onClick={() => handleInsurance(dog)}
-                          >
-                            <Shield size={16} />
-                            רכוש ביטוח
-                          </Button>
-                        )}
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-              
-              {myDogs.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500">לא נמצאו כלבים</p>
-                </div>
+            {/* My Dogs Tab - List View */}
+            <TabsContent value="mydogs" className="space-y-4">
+              {myDogs.length > 0 ? (
+                myDogs.map((dog) => (
+                  <ExpandableListItem
+                    key={dog.id}
+                    title={dog.name}
+                    subtitle={`${dog.breed}, ${dog.age} שנים`}
+                    image={dog.image}
+                    badge={
+                      dog.vaccines.some((v: any) => v.status === 'due') ? (
+                        <Badge className="bg-amber-500">חיסון נדרש</Badge>
+                      ) : (
+                        <Badge className="bg-green-500">מחוסן</Badge>
+                      )
+                    }
+                    previewContent={renderDogPreview(dog)}
+                    expandedContent={renderDogExpanded(dog)}
+                  />
+                ))
+              ) : (
+                <Card>
+                  <CardContent className="text-center py-12">
+                    <p className="text-gray-500">לא נמצאו כלבים</p>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           </Tabs>
