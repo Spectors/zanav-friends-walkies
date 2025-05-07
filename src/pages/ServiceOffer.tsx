@@ -8,14 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
-import { CalendarIcon, Calendar as CalendarLucide, Clock } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Calendar as CalendarLucide, Clock, AlertCircle } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ContactActions from '@/components/ContactActions';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const ServiceOffer = () => {
   const navigate = useNavigate();
@@ -27,9 +25,6 @@ const ServiceOffer = () => {
   const [ownerInfo, setOwnerInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    date: '',
-    time: '',
-    duration: '60',
     price: '',
     location: '',
     notes: ''
@@ -70,16 +65,6 @@ const ServiceOffer = () => {
       }
 
       setPet(foundPet);
-      
-      // Pre-fill form with pet's requested service details
-      if (foundPet.serviceDate) {
-        setFormData(prev => ({
-          ...prev,
-          date: foundPet.serviceDate,
-          time: foundPet.serviceTimeFrom || '',
-          duration: foundPet.serviceDuration || '60'
-        }));
-      }
 
       // Get owner information
       const usersStr = localStorage.getItem('zanav_users');
@@ -98,18 +83,23 @@ const ServiceOffer = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.date || !formData.time || !formData.price) {
+    if (!formData.price) {
       toast({
         title: "שגיאה",
-        description: "יש למלא את כל השדות החובה",
+        description: "יש למלא את שדה המחיר",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!pet.serviceDate) {
+      toast({
+        title: "שגיאה",
+        description: "לא ניתן להציע שירות - תאריך לא צוין על ידי בעל החיה",
         variant: "destructive",
       });
       return;
@@ -132,9 +122,10 @@ const ServiceOffer = () => {
       petImage: pet.image,
       petType: pet.type,
       status: 'pending', // pending, scheduled, in-progress, completed, cancelled
-      date: formData.date,
-      time: formData.time,
-      duration: `${formData.duration} דקות`,
+      date: pet.serviceDate,
+      time: pet.serviceTimeFrom,
+      timeTo: pet.serviceTimeTo,
+      duration: `${pet.serviceDuration || '30'} דקות`,
       location: formData.location,
       notes: formData.notes,
       price: Number(formData.price),
@@ -200,6 +191,16 @@ const ServiceOffer = () => {
             <div className="md:col-span-2">
               <Card>
                 <CardContent className="p-6">
+                  {!pet.serviceDate && (
+                    <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-200">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>לא צוין תאריך</AlertTitle>
+                      <AlertDescription>
+                        בעל החיה לא ציין תאריך ושעה מדויקים. אנא צור קשר עם בעל החיה לתיאום.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
                       <h3 className="text-lg font-medium text-blue-800 mb-2">פרטי הבקשה המקורית</h3>
@@ -214,65 +215,22 @@ const ServiceOffer = () => {
                             זמן: בין {pet.serviceTimeFrom} ל-{pet.serviceTimeTo}
                           </p>
                         )}
-                        <p className="">משך מבוקש: {pet.serviceDuration || '60'} דקות</p>
+                        <p className="">משך מבוקש: {pet.serviceDuration || '30'} דקות</p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="date">תאריך</Label>
-                        <Input
-                          id="date"
-                          name="date"
-                          type="date"
-                          value={formData.date}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="time">שעה מוצעת</Label>
-                        <Input
-                          id="time"
-                          name="time"
-                          type="time"
-                          value={formData.time}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="duration">משך זמן (דקות)</Label>
-                        <Select 
-                          value={formData.duration} 
-                          onValueChange={(value) => handleSelectChange('duration', value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="בחר משך זמן" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="30">30 דקות</SelectItem>
-                            <SelectItem value="60">60 דקות</SelectItem>
-                            <SelectItem value="90">90 דקות</SelectItem>
-                            <SelectItem value="120">120 דקות</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="price">מחיר (₪)</Label>
-                        <Input
-                          id="price"
-                          name="price"
-                          type="number"
-                          min="0"
-                          value={formData.price}
-                          onChange={handleChange}
-                          required
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="price">מחיר (₪)</Label>
+                      <Input
+                        id="price"
+                        name="price"
+                        type="number"
+                        min="0"
+                        value={formData.price}
+                        onChange={handleChange}
+                        required
+                        placeholder="הכנס מחיר בש״ח"
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -298,7 +256,13 @@ const ServiceOffer = () => {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full">שלח הצעת שירות</Button>
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={!pet.serviceDate}
+                    >
+                      שלח הצעת שירות
+                    </Button>
                   </form>
                 </CardContent>
               </Card>
