@@ -1,11 +1,17 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dog, Cat, Calendar } from 'lucide-react';
+import { Dog, Cat, Calendar, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from "@/lib/utils";
 
 interface PetCardProps {
   pet: {
@@ -20,16 +26,24 @@ interface PetCardProps {
     image: string | null;
     needsService: boolean;
     serviceType: string | null;
+    serviceTimeFrom?: string;
+    serviceTimeTo?: string;
+    serviceDuration?: string;
+    serviceDate?: string;
     createdAt: string;
   };
   viewType: 'owner' | 'provider';
-  onRequestService?: (petId: string, serviceType: string) => void;
+  onRequestService?: (petId: string, serviceType: string, serviceDate: string | undefined, serviceTimeFrom: string, serviceTimeTo: string, serviceDuration: string) => void;
 }
 
 const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) => {
   const { toast } = useToast();
   const [requestingService, setRequestingService] = React.useState(false);
   const [selectedService, setSelectedService] = React.useState<string>(pet.serviceType || 'walking');
+  const [date, setDate] = React.useState<Date | undefined>(pet.serviceDate ? new Date(pet.serviceDate) : new Date());
+  const [timeFrom, setTimeFrom] = React.useState(pet.serviceTimeFrom || '16:00');
+  const [timeTo, setTimeTo] = React.useState(pet.serviceTimeTo || '18:00');
+  const [duration, setDuration] = React.useState(pet.serviceDuration || '30');
 
   const PetIcon = () => {
     if (pet.type === 'cat') {
@@ -59,8 +73,9 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
   };
 
   const handleRequestService = () => {
-    if (onRequestService) {
-      onRequestService(pet.id, selectedService);
+    if (onRequestService && date) {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      onRequestService(pet.id, selectedService, formattedDate, timeFrom, timeTo, duration);
       setRequestingService(false);
       
       toast({
@@ -107,7 +122,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
           
           {pet.needsService && (
             <Badge className="bg-blue-100 text-blue-800">
-              מחפ�� שירות
+              מחפש שירות
             </Badge>
           )}
         </div>
@@ -122,6 +137,16 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
             <div>
               <p className="font-medium">מחפש שירות</p>
               <p className="text-sm text-gray-500">{serviceTypeLabel(pet.serviceType)}</p>
+              {pet.serviceDate && (
+                <p className="text-xs text-gray-500">
+                  <Calendar className="h-3 w-3 inline mr-1" /> {pet.serviceDate}
+                </p>
+              )}
+              {pet.serviceTimeFrom && pet.serviceTimeTo && (
+                <p className="text-xs text-gray-500">
+                  <Clock className="h-3 w-3 inline mr-1" /> {pet.serviceTimeFrom}-{pet.serviceTimeTo} ({pet.serviceDuration} דקות)
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -146,6 +171,82 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
                 <SelectItem value="training">אילוף 🎓</SelectItem>
               </SelectContent>
             </Select>
+            
+            <div>
+              <label className="text-sm font-medium">תאריך:</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-right font-normal mt-1",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {date ? format(date, "yyyy-MM-dd") : "בחר תאריך"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-sm font-medium">משעה:</label>
+                <Select value={timeFrom} onValueChange={setTimeFrom}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="משעה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, i) => i).map(hour => (
+                      <SelectItem key={hour} value={`${hour.toString().padStart(2, '0')}:00`}>
+                        {`${hour.toString().padStart(2, '0')}:00`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">עד שעה:</label>
+                <Select value={timeTo} onValueChange={setTimeTo}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="עד שעה" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, i) => i).map(hour => (
+                      <SelectItem key={hour} value={`${hour.toString().padStart(2, '0')}:00`}>
+                        {`${hour.toString().padStart(2, '0')}:00`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium">משך זמן (דקות):</label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="משך זמן" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 דקות</SelectItem>
+                  <SelectItem value="60">60 דקות</SelectItem>
+                  <SelectItem value="90">90 דקות</SelectItem>
+                  <SelectItem value="120">120 דקות</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
             <div className="flex gap-2">
               <Button variant="default" size="sm" className="flex-1" onClick={handleRequestService}>
                 שלח בקשה
@@ -176,11 +277,13 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
               </div>
             )
           ) : (
-            <Button variant="default" size="sm" asChild>
-              <Link to={`/service-offer?petId=${pet.id}`}>
-                הצע שירות
-              </Link>
-            </Button>
+            pet.needsService && (
+              <Button variant="default" size="sm" asChild>
+                <Link to={`/service-offer?petId=${pet.id}`}>
+                  הצע שירות
+                </Link>
+              </Button>
+            )
           )}
         </div>
       </CardFooter>

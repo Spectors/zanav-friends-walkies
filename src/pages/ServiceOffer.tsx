@@ -8,6 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { CalendarIcon, Calendar as CalendarLucide, Clock } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ContactActions from '@/components/ContactActions';
@@ -59,12 +64,22 @@ const ServiceOffer = () => {
       const allPets = JSON.parse(petsStr);
       const foundPet = allPets.find((p: any) => p.id === petId);
       
-      if (!foundPet) {
+      if (!foundPet || !foundPet.needsService) {
         navigate('/available-pets');
         return;
       }
 
       setPet(foundPet);
+      
+      // Pre-fill form with pet's requested service details
+      if (foundPet.serviceDate) {
+        setFormData(prev => ({
+          ...prev,
+          date: foundPet.serviceDate,
+          time: foundPet.serviceTimeFrom || '',
+          duration: foundPet.serviceDuration || '60'
+        }));
+      }
 
       // Get owner information
       const usersStr = localStorage.getItem('zanav_users');
@@ -186,6 +201,23 @@ const ServiceOffer = () => {
               <Card>
                 <CardContent className="p-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
+                      <h3 className="text-lg font-medium text-blue-800 mb-2">פרטי הבקשה המקורית</h3>
+                      <div className="space-y-2 text-blue-700">
+                        <p className="flex items-center gap-2">
+                          <CalendarLucide className="h-4 w-4" />
+                          תאריך: {pet.serviceDate || 'לא צוין'}
+                        </p>
+                        {pet.serviceTimeFrom && pet.serviceTimeTo && (
+                          <p className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            זמן: בין {pet.serviceTimeFrom} ל-{pet.serviceTimeTo}
+                          </p>
+                        )}
+                        <p className="">משך מבוקש: {pet.serviceDuration || '60'} דקות</p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="date">תאריך</Label>
@@ -199,7 +231,7 @@ const ServiceOffer = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="time">שעה</Label>
+                        <Label htmlFor="time">שעה מוצעת</Label>
                         <Input
                           id="time"
                           name="time"
