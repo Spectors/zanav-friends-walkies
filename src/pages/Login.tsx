@@ -4,8 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { Dog } from 'lucide-react';
+import { Dog, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -16,6 +17,8 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [userType, setUserType] = useState('owner');
+  const [serviceType, setServiceType] = useState('walking');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,28 +41,25 @@ const Login = () => {
       return;
     }
 
-    // Simulate authentication API call
-    setTimeout(() => {
-      // For demo: check if email contains "provider" to determine user type
-      const userType = formData.email.includes('provider') ? 'provider' : 'owner';
-      
-      // Store user info in localStorage (in a real app, you'd store a token)
-      const userInfo = {
-        email: formData.email,
-        userType,
-        name: formData.email.split('@')[0],
-      };
-      
-      localStorage.setItem('zanav_user', JSON.stringify(userInfo));
-      
-      toast({
-        title: "התחברות הצליחה!",
-        description: "ברוכים השבים לזאנב+",
-      });
-      
-      setIsLoading(false);
-      navigate('/dashboard');
-    }, 1000);
+    // Create user info based on form data
+    const userInfo = {
+      email: formData.email,
+      userType: userType,
+      name: formData.email.split('@')[0],
+      serviceType: userType === 'provider' ? serviceType : null,
+      phoneNumber: '050-1234567', // Default phone number for demo
+    };
+    
+    // Store user info in localStorage
+    localStorage.setItem('zanav_user', JSON.stringify(userInfo));
+    
+    toast({
+      title: "התחברות הצליחה!",
+      description: "ברוכים השבים לזאנב+",
+    });
+    
+    setIsLoading(false);
+    navigate('/dashboard');
   };
 
   return (
@@ -70,7 +70,10 @@ const Login = () => {
         <div className="w-full max-w-md mx-auto px-4">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <Dog className="h-12 w-12 text-zanav-blue" />
+              <div className="flex">
+                <Dog className="h-10 w-10 text-zanav-blue" />
+                <Cat className="h-10 w-10 text-zanav-blue -ml-2" />
+              </div>
             </div>
             <h1 className="text-3xl font-bold mb-2">ברוכים השבים</h1>
             <p className="text-gray-600">התחברו לחשבון שלכם</p>
@@ -87,9 +90,6 @@ const Login = () => {
                 onChange={handleChange}
                 required
               />
-              <p className="text-xs text-gray-500">
-                לצורך הדגמה: כתובת מייל עם "provider" תכנס למסך נותן שירות
-              </p>
             </div>
             
             <div className="space-y-2">
@@ -108,6 +108,45 @@ const Login = () => {
                 required
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label>סוג משתמש</Label>
+              <div className="flex gap-4">
+                <Button
+                  type="button"
+                  variant={userType === 'owner' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setUserType('owner')}
+                >
+                  בעל חיית מחמד
+                </Button>
+                <Button
+                  type="button"
+                  variant={userType === 'provider' ? 'default' : 'outline'}
+                  className="flex-1"
+                  onClick={() => setUserType('provider')}
+                >
+                  נותן שירות
+                </Button>
+              </div>
+            </div>
+            
+            {userType === 'provider' && (
+              <div className="space-y-2">
+                <Label htmlFor="serviceType">סוג שירות</Label>
+                <Select value={serviceType} onValueChange={setServiceType}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="בחר סוג שירות" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="walking">טיולים 🐕</SelectItem>
+                    <SelectItem value="sitting">פנסיון 🏠</SelectItem>
+                    <SelectItem value="grooming">טיפוח ✂️</SelectItem>
+                    <SelectItem value="training">אילוף 🎓</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             
             <Button 
               type="submit" 

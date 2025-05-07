@@ -16,6 +16,8 @@ import Booking from "./pages/Booking";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import ServiceDetails from "./pages/ServiceDetails";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -35,10 +37,12 @@ function App() {
             <Route path="/pet-onboarding" element={<PetOnboarding />} />
             <Route path="/my-pets" element={<MyPets />} />
             <Route path="/available-pets" element={<AvailablePets />} />
+            <Route path="/booking/new" element={<Booking />} />
             <Route path="/booking/:serviceId" element={<Booking />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/service/:id" element={<Services />} />
+            <Route path="/service/:id" element={<ServiceDetails />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

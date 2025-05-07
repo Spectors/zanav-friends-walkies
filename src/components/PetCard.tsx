@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dog, Cat, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from '@/hooks/use-toast';
 
 interface PetCardProps {
   pet: {
@@ -22,9 +24,14 @@ interface PetCardProps {
     createdAt: string;
   };
   viewType: 'owner' | 'provider';
+  onRequestService?: (petId: string, serviceType: string) => void;
 }
 
-const PetCard: React.FC<PetCardProps> = ({ pet, viewType }) => {
+const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) => {
+  const { toast } = useToast();
+  const [requestingService, setRequestingService] = React.useState(false);
+  const [selectedService, setSelectedService] = React.useState<string>(pet.serviceType || 'walking');
+
   const PetIcon = () => {
     if (pet.type === 'cat') {
       return <Cat className="h-5 w-5 text-primary" />;
@@ -49,6 +56,18 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType }) => {
       case 'grooming': return 'טיפוח';
       case 'training': return 'אילוף';
       default: return 'לא צוין';
+    }
+  };
+
+  const handleRequestService = () => {
+    if (onRequestService) {
+      onRequestService(pet.id, selectedService);
+      setRequestingService(false);
+      
+      toast({
+        title: "בקשת שירות נשלחה",
+        description: `הבקשה עבור ${serviceTypeLabel(selectedService)} נשלחה בהצלחה`,
+      });
     }
   };
 
@@ -113,16 +132,50 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType }) => {
             <p className="text-sm font-medium">בעלים: {pet.ownerName}</p>
           </div>
         )}
+
+        {requestingService && viewType === 'owner' && (
+          <div className="mt-4 pt-4 border-t space-y-3">
+            <p className="font-medium text-sm">איזה שירות תרצה להזמין?</p>
+            <Select value={selectedService} onValueChange={setSelectedService}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="בחר שירות" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="walking">טיולים 🐕</SelectItem>
+                <SelectItem value="sitting">פנסיון 🏠</SelectItem>
+                <SelectItem value="grooming">טיפוח ✂️</SelectItem>
+                <SelectItem value="training">אילוף 🎓</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
+              <Button variant="default" size="sm" className="flex-1" onClick={handleRequestService}>
+                שלח בקשה
+              </Button>
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => setRequestingService(false)}>
+                ביטול
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
       
       <CardFooter className="bg-gray-50 px-4 py-3">
         <div className="w-full flex justify-between items-center">
           {viewType === 'owner' ? (
-            <Button variant="outline" size="sm" asChild>
-              <Link to={`/pets/${pet.id}/edit`}>
-                ערוך פרטים
-              </Link>
-            </Button>
+            requestingService ? null : (
+              <div className="flex gap-2 w-full">
+                <Button variant="outline" size="sm" asChild className="flex-1">
+                  <Link to={`/pets/${pet.id}/edit`}>
+                    ערוך פרטים
+                  </Link>
+                </Button>
+                {!pet.needsService && (
+                  <Button variant="default" size="sm" className="flex-1" onClick={() => setRequestingService(true)}>
+                    בקש שירות
+                  </Button>
+                )}
+              </div>
+            )
           ) : (
             <Button variant="default" size="sm" asChild>
               <Link to={`/booking/new?petId=${pet.id}`}>

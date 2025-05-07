@@ -8,6 +8,7 @@ import { Dog, Cat, Plus, Search } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import PetCard from '@/components/PetCard';
+import { useToast } from '@/hooks/use-toast';
 
 type Pet = {
   id: string;
@@ -26,6 +27,7 @@ type Pet = {
 
 const MyPets = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [petType, setPetType] = useState<string>('all');
@@ -50,6 +52,37 @@ const MyPets = () => {
       setPets(userPets);
     }
   }, [navigate]);
+
+  const handleRequestService = (petId: string, serviceType: string) => {
+    // Update the pet in state
+    const updatedPets = pets.map(pet => {
+      if (pet.id === petId) {
+        return { ...pet, needsService: true, serviceType };
+      }
+      return pet;
+    });
+    
+    setPets(updatedPets);
+    
+    // Update localStorage
+    const petsStr = localStorage.getItem('zanav_pets');
+    if (petsStr) {
+      const allPets = JSON.parse(petsStr);
+      const updatedAllPets = allPets.map((pet: Pet) => {
+        if (pet.id === petId) {
+          return { ...pet, needsService: true, serviceType };
+        }
+        return pet;
+      });
+      
+      localStorage.setItem('zanav_pets', JSON.stringify(updatedAllPets));
+    }
+    
+    toast({
+      title: "בקשת שירות נוספה בהצלחה",
+      description: "נותני שירות יוכלו כעת לראות את חיית המחמד שלך ולהציע את שירותיהם",
+    });
+  };
 
   const filteredPets = pets.filter(pet => {
     const matchesType = petType === 'all' || pet.type === petType;
@@ -146,7 +179,12 @@ const MyPets = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredPets.map((pet) => (
-                <PetCard key={pet.id} pet={pet} viewType="owner" />
+                <PetCard 
+                  key={pet.id} 
+                  pet={pet} 
+                  viewType="owner" 
+                  onRequestService={handleRequestService}
+                />
               ))}
             </div>
           )}
