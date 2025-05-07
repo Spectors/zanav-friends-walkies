@@ -53,6 +53,27 @@ const Login = () => {
     // Store user info in localStorage
     localStorage.setItem('zanav_user', JSON.stringify(userInfo));
     
+    // Initialize other storage if needed
+    if (!localStorage.getItem('zanav_services')) {
+      localStorage.setItem('zanav_services', JSON.stringify([]));
+    }
+    
+    if (!localStorage.getItem('zanav_users')) {
+      // Add current user to users collection
+      const users = [userInfo];
+      localStorage.setItem('zanav_users', JSON.stringify(users));
+    } else {
+      // Check if user exists, if not add them
+      const usersStr = localStorage.getItem('zanav_users');
+      const users = JSON.parse(usersStr!);
+      const userExists = users.some((user: any) => user.email === userInfo.email);
+      
+      if (!userExists) {
+        users.push(userInfo);
+        localStorage.setItem('zanav_users', JSON.stringify(users));
+      }
+    }
+    
     toast({
       title: "התחברות הצליחה!",
       description: "ברוכים השבים לזאנב+",

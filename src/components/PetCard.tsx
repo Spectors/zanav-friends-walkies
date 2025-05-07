@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -108,7 +107,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
           
           {pet.needsService && (
             <Badge className="bg-blue-100 text-blue-800">
-              מחפש שירות
+              מחפ�� שירות
             </Badge>
           )}
         </div>
@@ -178,7 +177,7 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
             )
           ) : (
             <Button variant="default" size="sm" asChild>
-              <Link to={`/booking/new?petId=${pet.id}`}>
+              <Link to={`/service-offer?petId=${pet.id}`}>
                 הצע שירות
               </Link>
             </Button>

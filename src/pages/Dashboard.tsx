@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,55 +38,53 @@ const Dashboard = () => {
       }
     }
 
-    // Simulate getting services data
-    const mockServices = [
-      {
-        id: 1,
-        title: 'טיול לפארק',
-        providerName: 'דני כהן',
-        providerImage: 'https://randomuser.me/api/portraits/men/32.jpg',
-        clientName: 'רונית לוי',
-        clientImage: 'https://randomuser.me/api/portraits/women/44.jpg',
-        petName: 'רקסי',
-        petImage: null,
-        petType: 'dog',
-        status: 'scheduled',
-        date: '15/05/2025',
-        time: '16:30',
-        duration: '45 דקות',
-        location: 'פארק הירקון',
-        price: 80,
-        isPaid: false,
-        phoneNumber: '050-1234567',
-        serviceType: 'walking'
-      },
-      {
-        id: 2,
-        title: 'טיפול טיפוח',
-        providerName: 'תמר גולן',
-        providerImage: 'https://randomuser.me/api/portraits/women/68.jpg',
-        clientName: 'אמיר כהן',
-        clientImage: 'https://randomuser.me/api/portraits/men/55.jpg',
-        petName: 'לונה',
-        petImage: null,
-        petType: 'cat',
-        status: 'completed',
-        date: '02/05/2025',
-        time: '13:00',
-        duration: '90 דקות',
-        location: null,
-        price: 150,
-        isPaid: true,
-        phoneNumber: '050-9876543',
-        serviceType: 'grooming'
+    // Get services data from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Filter services based on user type
+      let userServices = [];
+      if (parsedUserInfo.userType === 'owner') {
+        userServices = allServices.filter((service: any) => service.clientId === parsedUserInfo.email);
+      } else {
+        userServices = allServices.filter((service: any) => service.providerId === parsedUserInfo.email);
       }
-    ];
-    
-    setServices(mockServices);
+      
+      setServices(userServices);
+    } else {
+      // Initialize empty services array in localStorage if it doesn't exist
+      localStorage.setItem('zanav_services', JSON.stringify([]));
+    }
   }, [navigate]);
 
   const getRecentPets = () => {
     return pets.slice(0, 2); // Get most recent 2 pets
+  };
+  
+  const handleRequestService = (petId: string, serviceType: string) => {
+    // Find the pet to update
+    const petsStr = localStorage.getItem('zanav_pets');
+    if (petsStr) {
+      const allPets = JSON.parse(petsStr);
+      const updatedPets = allPets.map((pet: any) => {
+        if (pet.id === petId) {
+          return {
+            ...pet,
+            needsService: true,
+            serviceType: serviceType
+          };
+        }
+        return pet;
+      });
+      
+      // Update localStorage
+      localStorage.setItem('zanav_pets', JSON.stringify(updatedPets));
+      
+      // Update state
+      const userPets = updatedPets.filter((pet: any) => pet.ownerId === userInfo.email);
+      setPets(userPets);
+    }
   };
 
   if (!userInfo) {
@@ -141,7 +140,7 @@ const Dashboard = () => {
                   </TabsList>
                   
                   <TabsContent value="upcoming">
-                    {services.filter(s => s.status === 'scheduled').length === 0 ? (
+                    {services.filter(s => s.status === 'scheduled' || s.status === 'pending').length === 0 ? (
                       <Card>
                         <CardContent className="py-10 text-center">
                           <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
@@ -162,7 +161,7 @@ const Dashboard = () => {
                     ) : (
                       <div className="space-y-4">
                         {services
-                          .filter(service => service.status === 'scheduled')
+                          .filter(service => service.status === 'scheduled' || service.status === 'pending')
                           .map(service => (
                             <ServiceCard 
                               key={service.id} 
@@ -279,7 +278,11 @@ const Dashboard = () => {
                     <div className="space-y-4">
                       {getRecentPets().map((pet) => (
                         <div key={pet.id}>
-                          <PetCard pet={pet} viewType="owner" />
+                          <PetCard 
+                            pet={pet} 
+                            viewType="owner" 
+                            onRequestService={handleRequestService}
+                          />
                         </div>
                       ))}
                       {pets.length > 2 && (
@@ -302,15 +305,17 @@ const Dashboard = () => {
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">שירותים השבוע</span>
-                        <span className="font-medium">1</span>
+                        <span className="font-medium">{services.filter(s => s.status === 'scheduled' || s.status === 'pending').length}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">שירותים החודש</span>
-                        <span className="font-medium">2</span>
+                        <span className="font-medium">{services.length}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">הכנסות החודש</span>
-                        <span className="font-medium">₪230</span>
+                        <span className="font-medium">₪{services
+                          .filter(s => s.status === 'completed' && s.isPaid)
+                          .reduce((total, s) => total + s.price, 0)}</span>
                       </div>
                     </div>
                   </CardContent>

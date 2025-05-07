@@ -18,7 +18,7 @@ interface ServiceCardProps {
     petName?: string;
     petImage?: string;
     petType?: 'dog' | 'cat';
-    status: 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
+    status: 'pending' | 'scheduled' | 'in-progress' | 'completed' | 'cancelled';
     date: string;
     time: string;
     duration: string;
@@ -34,6 +34,7 @@ interface ServiceCardProps {
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'pending': return 'bg-purple-100 text-purple-800';
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'in-progress': return 'bg-amber-100 text-amber-800';
       case 'completed': return 'bg-green-100 text-green-800';
@@ -44,6 +45,7 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
   
   const getStatusText = (status: string) => {
     switch (status) {
+      case 'pending': return 'ממתין לאישור 🕒';
       case 'scheduled': return 'מתוזמן 📅';
       case 'in-progress': return 'בתהליך 🏃‍♂️';
       case 'completed': return 'הושלם ✅';
@@ -67,7 +69,8 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
     <Card className="overflow-hidden border-t-4 hover:shadow-md transition-shadow"
           style={{ borderTopColor: 
             service.status === 'completed' ? '#10b981' : 
-            service.status === 'scheduled' ? '#3b82f6' : 
+            service.status === 'scheduled' ? '#3b82f6' :
+            service.status === 'pending' ? '#8b5cf6' :
             service.status === 'in-progress' ? '#f59e0b' : '#ef4444' 
           }}
     >
@@ -172,6 +175,13 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
           <Link to={`/service/${service.id}`}>
             <Button variant="outline" size="sm">צפייה בפרטים</Button>
           </Link>
+          
+          {service.status === 'pending' && viewType === 'animalOwner' && (
+            <div className="flex gap-2">
+              <Button variant="default" size="sm">אישור הזמנה</Button>
+              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">דחייה</Button>
+            </div>
+          )}
           
           {service.status === 'scheduled' && (
             <Button variant="secondary" size="sm">שינוי הזמנה</Button>

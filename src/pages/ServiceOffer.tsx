@@ -1,0 +1,346 @@
+
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import ContactActions from '@/components/ContactActions';
+
+const ServiceOffer = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const petId = searchParams.get('petId');
+  const [pet, setPet] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<any>(null);
+  const [ownerInfo, setOwnerInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    date: '',
+    time: '',
+    duration: '60',
+    price: '',
+    location: '',
+    notes: ''
+  });
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userInfoStr = localStorage.getItem('zanav_user');
+    if (!userInfoStr) {
+      navigate('/login');
+      return;
+    }
+
+    const parsedUserInfo = JSON.parse(userInfoStr);
+    setUserInfo(parsedUserInfo);
+
+    // Verify user is a provider
+    if (parsedUserInfo.userType !== 'provider') {
+      navigate('/dashboard');
+      return;
+    }
+
+    // Check if petId exists
+    if (!petId) {
+      navigate('/available-pets');
+      return;
+    }
+
+    // Get pet data
+    const petsStr = localStorage.getItem('zanav_pets');
+    if (petsStr) {
+      const allPets = JSON.parse(petsStr);
+      const foundPet = allPets.find((p: any) => p.id === petId);
+      
+      if (!foundPet) {
+        navigate('/available-pets');
+        return;
+      }
+
+      setPet(foundPet);
+
+      // Get owner information
+      const usersStr = localStorage.getItem('zanav_users');
+      if (usersStr) {
+        const allUsers = JSON.parse(usersStr);
+        const owner = allUsers.find((u: any) => u.email === foundPet.ownerId);
+        setOwnerInfo(owner);
+      }
+    }
+
+    setLoading(false);
+  }, [navigate, petId]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!formData.date || !formData.time || !formData.price) {
+      toast({
+        title: "שגיאה",
+        description: "יש למלא את כל השדות החובה",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create new service offer
+    const newService = {
+      id: Date.now(),
+      title: `שירות ${pet.serviceType === 'walking' ? 'טיולים' : 
+              pet.serviceType === 'sitting' ? 'פנסיון' :
+              pet.serviceType === 'grooming' ? 'טיפוח' : 'אילוף'}`,
+      providerId: userInfo.email,
+      providerName: userInfo.name,
+      providerImage: null,
+      clientId: pet.ownerId,
+      clientName: ownerInfo?.name || pet.ownerName,
+      clientImage: null,
+      petId: pet.id,
+      petName: pet.name,
+      petImage: pet.image,
+      petType: pet.type,
+      status: 'pending', // pending, scheduled, in-progress, completed, cancelled
+      date: formData.date,
+      time: formData.time,
+      duration: `${formData.duration} דקות`,
+      location: formData.location,
+      notes: formData.notes,
+      price: Number(formData.price),
+      isPaid: false,
+      phoneNumber: userInfo.phoneNumber || '000-0000000',
+      serviceType: pet.serviceType
+    };
+
+    // Get existing services or create new array
+    const servicesStr = localStorage.getItem('zanav_services');
+    const services = servicesStr ? JSON.parse(servicesStr) : [];
+    
+    // Add new service
+    services.push(newService);
+    
+    // Save to localStorage
+    localStorage.setItem('zanav_services', JSON.stringify(services));
+    
+    toast({
+      title: "הצעת שירות נשלחה",
+      description: "הבקשה נשלחה בהצלחה לבעל החיה",
+    });
+    
+    navigate('/dashboard');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center">
+          <p>טוען...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!pet) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Navbar />
+        <div className="flex-grow py-8 container-custom">
+          <h1 className="text-2xl font-bold mb-4">חיית המחמד לא נמצאה</h1>
+          <Button onClick={() => navigate('/available-pets')}>חזרה לחיות זמינות</Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      <main className="flex-grow py-8">
+        <div className="container-custom max-w-4xl">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold mb-2">הצעת שירות</h1>
+            <p className="text-muted-foreground">הצע שירות ל{pet.name} ולבעלים שלו</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2">
+              <Card>
+                <CardContent className="p-6">
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="date">תאריך</Label>
+                        <Input
+                          id="date"
+                          name="date"
+                          type="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="time">שעה</Label>
+                        <Input
+                          id="time"
+                          name="time"
+                          type="time"
+                          value={formData.time}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="duration">משך זמן (דקות)</Label>
+                        <Select 
+                          value={formData.duration} 
+                          onValueChange={(value) => handleSelectChange('duration', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר משך זמן" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30">30 דקות</SelectItem>
+                            <SelectItem value="60">60 דקות</SelectItem>
+                            <SelectItem value="90">90 דקות</SelectItem>
+                            <SelectItem value="120">120 דקות</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="price">מחיר (₪)</Label>
+                        <Input
+                          id="price"
+                          name="price"
+                          type="number"
+                          min="0"
+                          value={formData.price}
+                          onChange={handleChange}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="location">מיקום</Label>
+                      <Input
+                        id="location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        placeholder="כתובת השירות"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="notes">הערות נוספות</Label>
+                      <Textarea
+                        id="notes"
+                        name="notes"
+                        value={formData.notes}
+                        onChange={handleChange}
+                        placeholder="הוסף פרטים נוספים על השירות"
+                        rows={4}
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full">שלח הצעת שירות</Button>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-6">
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-bold mb-4">פרטי חיית המחמד</h2>
+                  <div className="text-center mb-4">
+                    {pet.image ? (
+                      <div className="w-32 h-32 mx-auto rounded-full overflow-hidden">
+                        <img src={pet.image} alt={pet.name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="w-32 h-32 mx-auto rounded-full bg-muted flex items-center justify-center">
+                        <span className="text-4xl">
+                          {pet.type === 'dog' ? '🐶' : '😺'}
+                        </span>
+                      </div>
+                    )}
+                    <h3 className="mt-2 font-bold text-xl">{pet.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {pet.breed && `${pet.breed}, `}גיל: {pet.age}
+                    </p>
+                  </div>
+                  
+                  <div className="bg-muted p-3 rounded-md flex items-center gap-3 mb-4">
+                    <span className="text-xl">
+                      {pet.serviceType === 'walking' ? '🐕' : 
+                       pet.serviceType === 'sitting' ? '🏠' :
+                       pet.serviceType === 'grooming' ? '✂️' : '🎓'}
+                    </span>
+                    <div>
+                      <p className="font-medium">סוג שירות מבוקש</p>
+                      <p className="text-sm">
+                        {pet.serviceType === 'walking' ? 'טיולים' : 
+                         pet.serviceType === 'sitting' ? 'פנסיון' :
+                         pet.serviceType === 'grooming' ? 'טיפוח' : 'אילוף'}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {pet.description && (
+                    <div className="mb-4">
+                      <p className="font-medium mb-1">על {pet.name}</p>
+                      <p className="text-sm">{pet.description}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-6">
+                  <h2 className="text-lg font-semibold mb-4">פרטי בעלים</h2>
+                  <p className="font-medium">{ownerInfo?.name || pet.ownerName}</p>
+                  
+                  {ownerInfo?.phoneNumber && (
+                    <ContactActions 
+                      phoneNumber={ownerInfo.phoneNumber}
+                      whatsapp={true} 
+                      className="w-full mt-4" 
+                      size="md"
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default ServiceOffer;
