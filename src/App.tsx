@@ -9,6 +9,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Services from "./pages/Services";
 import Dashboard from "./pages/Dashboard";
+import PetOnboarding from "./pages/PetOnboarding";
+import MyPets from "./pages/MyPets";
+import AvailablePets from "./pages/AvailablePets";
 import Booking from "./pages/Booking";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -29,6 +32,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/services" element={<Services />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/pet-onboarding" element={<PetOnboarding />} />
+            <Route path="/my-pets" element={<MyPets />} />
+            <Route path="/available-pets" element={<AvailablePets />} />
             <Route path="/booking/:serviceId" element={<Booking />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />

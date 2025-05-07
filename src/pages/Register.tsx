@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Dog, User, PawPrint, Calendar, Heart } from 'lucide-react';
+import { Dog, User, PawPrint, Calendar, Heart, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -80,7 +79,13 @@ const Register = () => {
       });
       
       setIsLoading(false);
-      navigate('/dashboard');
+      
+      // Redirect based on user type
+      if (formData.userType === 'owner') {
+        navigate('/pet-onboarding'); // Redirect to pet onboarding for animal owners
+      } else {
+        navigate('/dashboard'); // Redirect to dashboard for service providers
+      }
     }, 1000);
   };
 
@@ -114,8 +119,8 @@ const Register = () => {
           <Tabs defaultValue={formData.userType} onValueChange={handleTypeChange} className="w-full">
             <TabsList className="grid grid-cols-2 mb-8">
               <TabsTrigger value="owner" className="flex items-center gap-2">
-                <Dog size={18} />
-                <span>בעל כלב 🐶</span>
+                <PawPrint size={18} />
+                <span>בעל חיית מחמד 🐾</span>
               </TabsTrigger>
               <TabsTrigger value="provider" className="flex items-center gap-2">
                 <User size={18} />
@@ -201,7 +206,7 @@ const Register = () => {
                   className="w-full bg-primary hover:bg-primary/90"
                   disabled={isLoading}
                 >
-                  {isLoading ? '⏳ נרשם...' : '🐕 הרשמה כבעל כלב'}
+                  {isLoading ? '⏳ נרשם...' : '🐾 הרשמה כבעל חיית מחמד'}
                 </Button>
               </form>
             </TabsContent>
