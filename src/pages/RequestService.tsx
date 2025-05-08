@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar as CalendarIcon, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -42,6 +43,9 @@ const serviceFormSchema = z.object({
   duration: z.string({
     required_error: "יש לבחור משך זמן",
   }),
+  location: z.string({
+    required_error: "יש להזין כתובת",
+  }),
 });
 
 type ServiceFormValues = z.infer<typeof serviceFormSchema>;
@@ -59,6 +63,7 @@ const RequestService = () => {
       timeFrom: "16:00",
       timeTo: "18:00",
       duration: "30",
+      location: "",
     },
   });
   
@@ -103,6 +108,7 @@ const RequestService = () => {
           serviceTimeFrom: data.timeFrom,
           serviceTimeTo: data.timeTo,
           serviceDuration: data.duration,
+          location: data.location,
         };
       }
       return p;
@@ -215,6 +221,30 @@ const RequestService = () => {
                             ))}
                           </RadioGroup>
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  {/* Location */}
+                  <FormField
+                    control={form.control}
+                    name="location"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-1">
+                          <MapPin className="h-4 w-4" />
+                          <span>מיקום</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="הכנס כתובת מדויקת"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          המיקום ממנו ילקח/יטופל חיית המחמד
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

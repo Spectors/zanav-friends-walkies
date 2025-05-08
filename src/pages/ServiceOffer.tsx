@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Calendar as CalendarLucide, Clock, AlertCircle } from 'lucide-react';
+import { CalendarIcon, Calendar as CalendarLucide, Clock, AlertCircle, MapPin } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -25,10 +25,18 @@ const ServiceOffer = () => {
   const [ownerInfo, setOwnerInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    price: '',
     location: '',
     notes: ''
   });
+
+  // Calculate fixed price based on duration
+  const getFixedPrice = (duration: string) => {
+    const durationInMinutes = parseInt(duration || '30');
+    if (durationInMinutes <= 30) return 40;
+    if (durationInMinutes <= 60) return 55;
+    if (durationInMinutes <= 90) return 70;
+    return 85; // For 120 minutes or more
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -86,16 +94,7 @@ const ServiceOffer = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.price) {
-      toast({
-        title: "שגיאה",
-        description: "יש למלא את שדה המחיר",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Validation
     if (!pet.serviceDate) {
       toast({
         title: "שגיאה",
@@ -105,6 +104,17 @@ const ServiceOffer = () => {
       return;
     }
 
+    if (!pet.location) {
+      toast({
+        title: "שגיאה",
+        description: "מיקום לא צוין על ידי בעל החיה",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const price = getFixedPrice(pet.serviceDuration);
+    
     // Create new service offer
     const newService = {
       id: Date.now(),
@@ -126,9 +136,9 @@ const ServiceOffer = () => {
       time: pet.serviceTimeFrom,
       timeTo: pet.serviceTimeTo,
       duration: `${pet.serviceDuration || '30'} דקות`,
-      location: formData.location,
+      location: pet.location,
       notes: formData.notes,
-      price: Number(formData.price),
+      price: price,
       isPaid: false,
       phoneNumber: userInfo.phoneNumber || '000-0000000',
       serviceType: pet.serviceType
@@ -177,6 +187,8 @@ const ServiceOffer = () => {
     );
   }
 
+  const calculatedPrice = getFixedPrice(pet.serviceDuration);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -200,6 +212,16 @@ const ServiceOffer = () => {
                       </AlertDescription>
                     </Alert>
                   )}
+                  
+                  {!pet.location && (
+                    <Alert className="mb-6 bg-amber-50 text-amber-800 border-amber-200">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>לא צוין מיקום</AlertTitle>
+                      <AlertDescription>
+                        בעל החיה לא ציין מיקום לטיפול. אנא צור קשר עם בעל החיה לתיאום.
+                      </AlertDescription>
+                    </Alert>
+                  )}
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
@@ -215,33 +237,13 @@ const ServiceOffer = () => {
                             זמן: בין {pet.serviceTimeFrom} ל-{pet.serviceTimeTo}
                           </p>
                         )}
+                        <p className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          מיקום: {pet.location || 'לא צוין'}
+                        </p>
                         <p className="">משך מבוקש: {pet.serviceDuration || '30'} דקות</p>
+                        <p className="font-medium mt-2">מחיר קבוע: ₪{calculatedPrice}</p>
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="price">מחיר (₪)</Label>
-                      <Input
-                        id="price"
-                        name="price"
-                        type="number"
-                        min="0"
-                        value={formData.price}
-                        onChange={handleChange}
-                        required
-                        placeholder="הכנס מחיר בש״ח"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="location">מיקום</Label>
-                      <Input
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        placeholder="כתובת השירות"
-                      />
                     </div>
 
                     <div className="space-y-2">
@@ -259,7 +261,7 @@ const ServiceOffer = () => {
                     <Button 
                       type="submit" 
                       className="w-full" 
-                      disabled={!pet.serviceDate}
+                      disabled={!pet.serviceDate || !pet.location}
                     >
                       שלח הצעת שירות
                     </Button>

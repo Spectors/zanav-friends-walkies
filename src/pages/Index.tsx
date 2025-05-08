@@ -19,7 +19,7 @@ const HomePage = () => {
                 מצאו את השירות המושלם לחיית המחמד שלכם
               </h1>
               <p className="text-lg mb-8 text-gray-600">
-                זאנב+ מחברת בין בעלי חיות מחמד לבין מטפלים מקצועיים ואמינים. טיולים, פנסיון, טיפוח ועוד במקום אחד. 🐶😺
+                זנב+ מחברת בין בעלי חיות מחמד לבין מטפלים מקצועיים ואמינים. טיולים, פנסיון, טיפוח ועוד במקום אחד. 🐶😺
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link to="/register?type=owner">
@@ -158,7 +158,7 @@ const HomePage = () => {
                 {
                   name: "דני כהן",
                   image: "https://i.pravatar.cc/150?img=11",
-                  text: "מצאתי מטייל מעולה לכלב שלי דרך זאנב+. הוא חוזר מאושר ועייף מהטיולים!"
+                  text: "מצאתי מטייל מעולה לכלב שלי דרך זנב+. הוא חוזר מאושר ועייף מהטיולים!"
                 },
                 {
                   name: "מיכל לוי",

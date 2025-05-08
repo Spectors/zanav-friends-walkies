@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin, DollarSign, Check, X, Dog, Cat } from 'lucide-react';
+import { Calendar, Clock, MapPin, Check, X, Dog, Cat } from 'lucide-react';
 import ContactActions from './ContactActions';
 import { Link } from 'react-router-dom';
 
@@ -146,7 +146,6 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
           
           <div className="flex items-center justify-between pt-2 border-t">
             <div className="flex items-center gap-2">
-              <DollarSign size={18} className="text-emerald-600" />
               <span className="font-bold">₪{service.price}</span>
               {service.status === 'completed' && (
                 <div className="flex items-center gap-1 border px-2 py-0.5 rounded-full text-xs">
