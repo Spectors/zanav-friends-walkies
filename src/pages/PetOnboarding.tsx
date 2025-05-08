@@ -28,8 +28,6 @@ const petFormSchema = z.object({
   type: z.enum(["dog", "cat"], { message: "יש לבחור סוג חיית מחמד" }),
   breed: z.string().optional(),
   description: z.string().optional(),
-  needsService: z.boolean().default(false),
-  serviceType: z.enum(["walking", "sitting", "grooming", "training"]).optional(),
 });
 
 type PetFormValues = z.infer<typeof petFormSchema>;
@@ -48,7 +46,6 @@ const PetOnboarding = () => {
       type: "dog",
       breed: "",
       description: "",
-      needsService: false,
     },
   });
   
@@ -91,8 +88,8 @@ const PetOnboarding = () => {
       breed: data.breed || null,
       description: data.description || null,
       image: petImage,
-      needsService: data.needsService,
-      serviceType: data.needsService ? data.serviceType : null,
+      needsService: false,
+      serviceType: null,
       createdAt: new Date().toISOString(),
     };
     
@@ -125,15 +122,6 @@ const PetOnboarding = () => {
       reader.readAsDataURL(file);
     }
   };
-
-  const serviceTypes = [
-    { value: 'walking', label: 'טיולים', emoji: '🐕' },
-    { value: 'sitting', label: 'פנסיון', emoji: '🏠' },
-    { value: 'grooming', label: 'טיפוח', emoji: '✂️' },
-    { value: 'training', label: 'אילוף', emoji: '🎓' },
-  ];
-
-  const watchNeedsService = form.watch('needsService');
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -278,61 +266,6 @@ const PetOnboarding = () => {
                   </FormItem>
                 )}
               />
-              
-              {/* Needs Service Checkbox */}
-              <FormField
-                control={form.control}
-                name="needsService"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-x-reverse rounded-md border p-4">
-                    <FormControl>
-                      <input
-                        type="checkbox"
-                        checked={field.value}
-                        onChange={(e) => field.onChange(e.target.checked)}
-                        className="h-4 w-4 mt-1"
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>צריך/ה שירות כרגע?</FormLabel>
-                      <FormDescription>
-                        סמן אם אתה מחפש שירות ספציפי כרגע
-                      </FormDescription>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              
-              {/* Service Type Selection - Only shown if needs service */}
-              {watchNeedsService && (
-                <FormField
-                  control={form.control}
-                  name="serviceType"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>סוג שירות נדרש</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="grid grid-cols-2 gap-4"
-                        >
-                          {serviceTypes.map(service => (
-                            <div key={service.value} className="flex items-center space-x-2 space-x-reverse hover:bg-muted p-2 rounded-lg transition-colors">
-                              <RadioGroupItem value={service.value} id={`service-${service.value}`} />
-                              <FormLabel htmlFor={`service-${service.value}`} className="flex items-center cursor-pointer">
-                                <span className="mr-2">{service.emoji}</span>
-                                <span>{service.label}</span>
-                              </FormLabel>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
               
               <Button 
                 type="submit" 
