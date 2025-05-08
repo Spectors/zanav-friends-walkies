@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,101 +28,209 @@ const ServiceDetails = () => {
     const parsedUserInfo = JSON.parse(userInfoStr);
     setUserInfo(parsedUserInfo);
 
-    // For demo purposes, we'll use a mock service
-    const mockServices = [
-      {
-        id: 1,
-        title: 'טיול לפארק',
-        providerName: 'דני כהן',
-        providerImage: 'https://randomuser.me/api/portraits/men/32.jpg',
-        clientName: 'רונית לוי',
-        clientImage: 'https://randomuser.me/api/portraits/women/44.jpg',
-        petName: 'רקסי',
-        petImage: null,
-        petType: 'dog',
-        status: 'scheduled',
-        date: '15/05/2025',
-        time: '16:30',
-        duration: '45 דקות',
-        location: 'פארק הירקון',
-        price: 80,
-        isPaid: false,
-        phoneNumber: '050-1234567',
-        serviceType: 'walking',
-        petId: '123',
-        providerId: 'provider@example.com',
-        clientId: 'client@example.com'
-      },
-      {
-        id: 2,
-        title: 'טיפול טיפוח',
-        providerName: 'תמר גולן',
-        providerImage: 'https://randomuser.me/api/portraits/women/68.jpg',
-        clientName: 'אמיר כהן',
-        clientImage: 'https://randomuser.me/api/portraits/men/55.jpg',
-        petName: 'לונה',
-        petImage: null,
-        petType: 'cat',
-        status: 'completed',
-        date: '02/05/2025',
-        time: '13:00',
-        duration: '90 דקות',
-        location: null,
-        price: 150,
-        isPaid: true,
-        phoneNumber: '050-9876543',
-        serviceType: 'grooming',
-        petId: '456',
-        providerId: 'provider2@example.com',
-        clientId: 'client2@example.com'
+    // Get services data from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      const service = allServices.find((s: any) => s.id.toString() === id);
+      setServiceData(service || null);
+      
+      // Check if user is the owner of this service
+      if (service) {
+        const isServiceOwner = parsedUserInfo.userType === 'owner' && service.clientId === parsedUserInfo.email;
+        const isServiceProvider = parsedUserInfo.userType === 'provider' && service.providerId === parsedUserInfo.email;
+        setIsOwner(isServiceOwner || isServiceProvider);
       }
-    ];
-    
-    const service = mockServices.find(s => s.id.toString() === id);
-    setServiceData(service || null);
-    
-    // Check if user is the owner of this service
-    if (service) {
-      const isServiceOwner = parsedUserInfo.userType === 'owner' && service.clientId === parsedUserInfo.email;
-      const isServiceProvider = parsedUserInfo.userType === 'provider' && service.providerId === parsedUserInfo.email;
-      setIsOwner(isServiceOwner || isServiceProvider);
+    } else {
+      // For demo purposes, we'll use a mock service
+      const mockServices = [
+        {
+          id: 1,
+          title: 'טיול לפארק',
+          providerName: 'דני כהן',
+          providerImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+          clientName: 'רונית לוי',
+          clientImage: 'https://randomuser.me/api/portraits/women/44.jpg',
+          petName: 'רקסי',
+          petImage: null,
+          petType: 'dog',
+          status: 'scheduled',
+          date: '15/05/2025',
+          time: '16:30',
+          duration: '45 דקות',
+          location: 'פארק הירקון',
+          price: 80,
+          isPaid: false,
+          phoneNumber: '050-1234567',
+          serviceType: 'walking',
+          petId: '123',
+          providerId: 'provider@example.com',
+          clientId: 'client@example.com'
+        },
+        {
+          id: 2,
+          title: 'טיפול טיפוח',
+          providerName: 'תמר גולן',
+          providerImage: 'https://randomuser.me/api/portraits/women/68.jpg',
+          clientName: 'אמיר כהן',
+          clientImage: 'https://randomuser.me/api/portraits/men/55.jpg',
+          petName: 'לונה',
+          petImage: null,
+          petType: 'cat',
+          status: 'completed',
+          date: '02/05/2025',
+          time: '13:00',
+          duration: '90 דקות',
+          location: null,
+          price: 150,
+          isPaid: true,
+          phoneNumber: '050-9876543',
+          serviceType: 'grooming',
+          petId: '456',
+          providerId: 'provider2@example.com',
+          clientId: 'client2@example.com'
+        }
+      ];
+      
+      const service = mockServices.find(s => s.id.toString() === id);
+      setServiceData(service || null);
+      
+      // Check if user is the owner of this service
+      if (service) {
+        const isServiceOwner = parsedUserInfo.userType === 'owner' && service.clientId === parsedUserInfo.email;
+        const isServiceProvider = parsedUserInfo.userType === 'provider' && service.providerId === parsedUserInfo.email;
+        setIsOwner(isServiceOwner || isServiceProvider);
+      }
+      
+      // Initialize zanav_services in localStorage if it doesn't exist
+      localStorage.setItem('zanav_services', JSON.stringify(mockServices));
     }
     
     setLoading(false);
   }, [id, navigate]);
 
   const handleCancelService = () => {
-    // In a real app, this would update the service in the database
-    
-    toast({
-      title: "השירות בוטל",
-      description: "השירות בוטל בהצלחה",
-      variant: "destructive",
-    });
-    
-    navigate('/dashboard');
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id.toString() === id) {
+          return {
+            ...s,
+            status: 'cancelled'
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      toast({
+        title: "השירות בוטל",
+        description: "השירות בוטל בהצלחה",
+        variant: "destructive",
+      });
+      
+      navigate('/dashboard');
+    }
   };
 
   const handleCompleteService = () => {
-    // In a real app, this would update the service in the database
-    
-    toast({
-      title: "השירות הושלם",
-      description: "השירות הושלם בהצלחה",
-    });
-    
-    navigate('/dashboard');
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id.toString() === id) {
+          return {
+            ...s,
+            status: 'completed'
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      toast({
+        title: "השירות הושלם",
+        description: "השירות הושלם בהצלחה",
+      });
+      
+      navigate('/dashboard');
+    }
   };
 
   const handleConfirmPayment = () => {
-    // In a real app, this would update the service in the database
-    
-    toast({
-      title: "התשלום אושר",
-      description: "התשלום עבור השירות אושר בהצלחה",
-    });
-    
-    navigate('/dashboard');
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id.toString() === id) {
+          return {
+            ...s,
+            isPaid: true
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      toast({
+        title: "התשלום אושר",
+        description: "התשלום עבור השירות אושר בהצלחה",
+      });
+      
+      navigate('/dashboard');
+    }
+  };
+
+  const handleApproveService = () => {
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id.toString() === id) {
+          return {
+            ...s,
+            status: 'scheduled'
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      // Show success notifications
+      toast({
+        title: "השירות אושר בהצלחה",
+        description: `טיול הכלב מתוזמן ל-${serviceData?.date} בשעה ${serviceData?.time}`,
+      });
+
+      // Notify provider (in a real app this would trigger a notification)
+      toast({
+        title: `התראה נשלחה ל${serviceData?.providerName}`,
+        description: "זכור להשאיר את המפתח ומזון לחיית המחמד",
+      });
+      
+      navigate('/dashboard');
+    }
   };
 
   if (loading) {
@@ -168,6 +275,28 @@ const ServiceDetails = () => {
 
   const getStatusColor = (status: string) => {
     switch(status) {
+      case 'scheduled': return 'bg-blue-100 text-blue-800';
+      case 'in-progress': return 'bg-amber-100 text-amber-800';
+      case 'completed': return 'bg-green-100 text-green-800';
+      case 'cancelled': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
+  const getStatusLabel = (status: string) => {
+    switch(status) {
+      case 'pending': return 'ממתין לאישור';
+      case 'scheduled': return 'מתוזמן';
+      case 'in-progress': return 'בתהליך';
+      case 'completed': return 'הושלם';
+      case 'cancelled': return 'בוטל';
+      default: return status;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'pending': return 'bg-purple-100 text-purple-800';
       case 'scheduled': return 'bg-blue-100 text-blue-800';
       case 'in-progress': return 'bg-amber-100 text-amber-800';
       case 'completed': return 'bg-green-100 text-green-800';
@@ -245,22 +374,37 @@ const ServiceDetails = () => {
                     </div>
                   </div>
                   
-                  {serviceData.status === 'scheduled' && isOwner && (
+                  {isOwner && (
                     <div className="pt-4 border-t space-y-4">
                       <h3 className="font-semibold">פעולות</h3>
                       <div className="flex flex-wrap gap-3">
-                        {userInfo.userType === 'provider' ? (
-                          <Button onClick={handleCompleteService}>
-                            סמן כהושלם
-                          </Button>
-                        ) : (
-                          <Button onClick={handleConfirmPayment}>
-                            אשר תשלום
-                          </Button>
+                        {serviceData.status === 'pending' && userInfo.userType === 'owner' && (
+                          <>
+                            <Button onClick={handleApproveService}>
+                              אישור הזמנה
+                            </Button>
+                            <Button variant="outline" onClick={handleCancelService} className="text-red-600 hover:text-red-700">
+                              דחיית הזמנה
+                            </Button>
+                          </>
                         )}
-                        <Button variant="outline" onClick={handleCancelService}>
-                          בטל שירות
-                        </Button>
+                        
+                        {serviceData.status === 'scheduled' && (
+                          <>
+                            {userInfo.userType === 'provider' ? (
+                              <Button onClick={handleCompleteService}>
+                                סמן כהושלם
+                              </Button>
+                            ) : (
+                              <Button onClick={handleConfirmPayment} disabled={serviceData.isPaid}>
+                                {serviceData.isPaid ? 'שולם' : 'אשר תשלום'}
+                              </Button>
+                            )}
+                            <Button variant="outline" onClick={handleCancelService}>
+                              בטל שירות
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -349,6 +493,16 @@ const ServiceDetails = () => {
                   <p className="text-sm text-gray-600">
                     לשאלות נוספות ומידע על השירות, אנא צור קשר עם {userInfo.userType === 'owner' ? 'נותן השירות' : 'הלקוח'}.
                   </p>
+                  {serviceData.status === 'scheduled' && userInfo.userType === 'owner' && (
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-sm text-blue-800 font-medium">תזכורת למעני השירות:</p>
+                      <ul className="list-disc list-inside text-sm text-blue-700 mt-1">
+                        <li>השאר מזון זמין לחיית המחמד</li>
+                        <li>הכן את המפתח אם נדרש</li>
+                        <li>נסה לשוחח עם מטפל הכלבים לפני השירות</li>
+                      </ul>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

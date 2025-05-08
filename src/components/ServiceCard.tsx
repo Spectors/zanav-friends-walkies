@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Clock, MapPin, Check, X, Dog, Cat } from 'lucide-react';
 import ContactActions from './ContactActions';
 import { Link } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface ServiceCardProps {
   service: {
@@ -32,6 +33,8 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
+  const { toast } = useToast();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'pending': return 'bg-purple-100 text-purple-800';
@@ -63,6 +66,81 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
       return <Cat className="h-4 w-4 inline mr-1" />;
     }
     return <Dog className="h-4 w-4 inline mr-1" />;
+  };
+
+  const handleApproveService = () => {
+    // In a real app, this would update the service in a database
+    // For now, we'll just show a toast notification
+    
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id === service.id) {
+          return {
+            ...s,
+            status: 'scheduled'
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      // Show success notification
+      toast({
+        title: "השירות אושר בהצלחה",
+        description: `טיול הכלב מתוזמן ל-${service.date} בשעה ${service.time}`,
+      });
+
+      // Notify provider (in a real app this would trigger a notification)
+      toast({
+        title: `התראה נשלחה ל${service.providerName}`,
+        description: "זכור להשאיר את המפתח ומזון לחיית המחמד",
+      });
+      
+      // Force refresh by redirecting to the same page
+      window.location.reload();
+    }
+  };
+
+  const handleRejectService = () => {
+    // In a real app, this would update the service in a database
+    // For now, we'll just show a toast notification
+    
+    // Get services from localStorage
+    const servicesStr = localStorage.getItem('zanav_services');
+    if (servicesStr) {
+      const allServices = JSON.parse(servicesStr);
+      
+      // Find and update the service
+      const updatedServices = allServices.map((s: any) => {
+        if (s.id === service.id) {
+          return {
+            ...s,
+            status: 'cancelled'
+          };
+        }
+        return s;
+      });
+      
+      // Save back to localStorage
+      localStorage.setItem('zanav_services', JSON.stringify(updatedServices));
+      
+      // Show rejection notification
+      toast({
+        title: "השירות נדחה",
+        description: "ההזמנה בוטלה",
+        variant: "destructive",
+      });
+      
+      // Force refresh by redirecting to the same page
+      window.location.reload();
+    }
   };
 
   return (
@@ -177,8 +255,21 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ service, viewType }) => {
           
           {service.status === 'pending' && viewType === 'animalOwner' && (
             <div className="flex gap-2">
-              <Button variant="default" size="sm">אישור הזמנה</Button>
-              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">דחייה</Button>
+              <Button 
+                variant="default" 
+                size="sm"
+                onClick={handleApproveService}
+              >
+                אישור הזמנה
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-red-600 hover:text-red-700"
+                onClick={handleRejectService}
+              >
+                דחייה
+              </Button>
             </div>
           )}
           
