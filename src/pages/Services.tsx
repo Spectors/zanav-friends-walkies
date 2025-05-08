@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { MapPin, Search, Calendar, Dog, Star, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -245,7 +245,7 @@ const Services = () => {
                     <SelectValue placeholder="סוג שירות" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">כל השירותים</SelectItem>
+                    <SelectItem value="all-services">כל השירותים</SelectItem>
                     {serviceTypes.map((service) => (
                       <SelectItem key={service} value={service}>
                         {service}
@@ -261,7 +261,7 @@ const Services = () => {
                     <SelectValue placeholder="מיקום" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">כל המיקומים</SelectItem>
+                    <SelectItem value="all-locations">כל המיקומים</SelectItem>
                     {locations.map((location) => (
                       <SelectItem key={location} value={location}>
                         {location}
@@ -277,7 +277,7 @@ const Services = () => {
                     <SelectValue placeholder="סוג חיה" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">כל החיות</SelectItem>
+                    <SelectItem value="all-pets">כל החיות</SelectItem>
                     {petTypes.map((petType) => (
                       <SelectItem key={petType} value={petType}>
                         {petType === 'כלבים' ? '🐶 כלבים' : '😺 חתולים'}

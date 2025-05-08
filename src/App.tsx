@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import ServiceDetails from "./pages/ServiceDetails";
 import Profile from "./pages/Profile";
 import ServiceOffer from "./pages/ServiceOffer";
+import RequestService from "./pages/RequestService";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ function App() {
             <Route path="/booking/:serviceId" element={<Booking />} />
             <Route path="/service/:id" element={<ServiceDetails />} />
             <Route path="/service-offer" element={<ServiceOffer />} />
+            <Route path="/request-service/:petId" element={<RequestService />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/profile" element={<Profile />} />
