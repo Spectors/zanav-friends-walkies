@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, MapPin, DollarSign } from 'lucide-react';
+import { Calendar, Clock, MapPin } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -263,26 +263,7 @@ const ServiceDetails = () => {
     );
   }
 
-  const getStatusLabel = (status: string) => {
-    switch(status) {
-      case 'scheduled': return 'מתוזמן';
-      case 'in-progress': return 'בתהליך';
-      case 'completed': return 'הושלם';
-      case 'cancelled': return 'בוטל';
-      default: return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'scheduled': return 'bg-blue-100 text-blue-800';
-      case 'in-progress': return 'bg-amber-100 text-amber-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
+  // Define these functions only once
   const getStatusLabel = (status: string) => {
     switch(status) {
       case 'pending': return 'ממתין לאישור';
@@ -364,7 +345,6 @@ const ServiceDetails = () => {
                       <div className="col-span-2 space-y-1">
                         <p className="text-sm text-gray-500">תשלום</p>
                         <p className="flex items-center gap-2">
-                          <DollarSign size={18} className="text-emerald-600" />
                           <span className="font-bold text-lg">₪{serviceData.price}</span>
                           <span className={`mr-2 px-2 py-0.5 rounded-full text-xs ${serviceData.isPaid ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
                             {serviceData.isPaid ? 'שולם' : 'לא שולם'}
