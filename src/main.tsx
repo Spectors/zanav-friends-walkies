@@ -1,34 +1,23 @@
 
 import { createRoot } from 'react-dom/client';
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import App from './App.tsx';
 import './index.css';
 
 const rootElement = document.getElementById("root");
 
-// Error handling wrapper component
-const AppWithErrorHandling = () => {
-  return (
-    <StrictMode>
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
-    </StrictMode>
-  );
-};
-
 // Basic error boundary to catch and display errors
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
+  constructor(props: {children: React.ReactNode}) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("Application error:", error, errorInfo);
   }
 
@@ -60,6 +49,17 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+// Error handling wrapper component
+const AppWithErrorHandling = () => {
+  return (
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>
+  );
+};
 
 if (rootElement) {
   createRoot(rootElement).render(<AppWithErrorHandling />);

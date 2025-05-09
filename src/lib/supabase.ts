@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 
@@ -105,6 +106,7 @@ export const mockApi = {
       eq: () => ({
         single: async () => ({ data: null, error: { message: `Mocked DB: No ${table} data available` } })
       }),
+      maybeSingle: async () => ({ data: null, error: null }),
       eq: async () => ({ data: [], error: null })
     }),
     insert: async () => ({ data: null, error: { message: 'Mocked DB: Insert not available in demo mode' } }),
