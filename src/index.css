@@ -5,48 +5,53 @@
 
 @layer base {
   :root {
-    --background: 260 20% 97%;
-    --foreground: 222 47% 11%;
-
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 263 78% 58%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 283.4 39.3% 57.3%;
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 322 100% 65%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 260 40% 96.1%;
+    --secondary: 346.8 77.2% 49.8%;
+    --secondary-foreground: 355.7 100% 97.3%;
+    --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 193 50% 54%;
-    --accent-foreground: 222 47% 11%;
-
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 260 31.8% 91.4%;
-    --input: 260 31.8% 91.4%;
-    --ring: 263 78% 58%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 260 5% 98%;
-    --sidebar-foreground: 260 5.3% 26.1%;
-    --sidebar-primary: 263 78% 58%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 260 4.8% 95.9%;
-    --sidebar-accent-foreground: 260 5.9% 10%;
-    --sidebar-border: 260 13% 91%;
-    --sidebar-ring: 263 91.2% 59.8%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    
+    --zanav-blue: 221.2 83.2% 53.3%;
+    --zanav-orange: 24.6 95% 53.1%;
+    --zanav-green: 142.1 76.2% 36.3%;
+    --zanav-dark: 215.3 25% 27.3%;
   }
-
-  html {
-    direction: rtl;
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 283.4 39.3% 57.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 346.8 77.2% 49.8%;
+    --secondary-foreground: 355.7 100% 97.3%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
   }
 }
 
@@ -54,138 +59,38 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    font-family: 'Rubik', 'Heebo', sans-serif;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
-  }
-  
-  /* Improved focus styles for accessibility */
-  *:focus-visible {
-    @apply outline-2 outline-primary outline-offset-2;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-@layer components {
-  .button-primary {
-    @apply bg-primary text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition-all duration-300;
-  }
-  
-  .button-secondary {
-    @apply bg-secondary text-white px-6 py-3 rounded-full hover:bg-opacity-90 transition-all duration-300;
-  }
-
-  .section {
-    @apply py-12 md:py-20;
-  }
-
+@layer utilities {
   .container-custom {
-    @apply container max-w-6xl mx-auto px-4 sm:px-6;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  .service-card {
-    @apply rounded-xl shadow-lg p-4 border border-border bg-gradient-to-br from-white to-muted hover:shadow-xl transition-all duration-300;
-  }
-  
-  .badge-emoji {
-    @apply inline-flex items-center bg-muted px-2.5 py-1 rounded-full text-xs font-medium;
-  }
-  
-  .emoji-icon {
-    @apply mx-1;
-  }
-  
-  /* Mobile-friendly improvements */
-  .mobile-container {
-    @apply px-4 sm:px-6;
-  }
-  
-  .mobile-full-width {
-    @apply -mx-4 sm:mx-0;
-  }
-  
-  .card-hover {
-    @apply hover:-translate-y-1 transition-transform duration-300;
-  }
-  
-  /* Gen Z vibrant gradients */
-  .bg-gradient-vibrant {
-    @apply bg-gradient-to-r from-primary via-secondary to-accent;
-  }
-  
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary;
-  }
-  
-  /* Service Status Indicators */
-  .status-scheduled {
-    @apply bg-blue-100 text-blue-800 border-blue-200;
-  }
-  
-  .status-in-progress {
-    @apply bg-amber-100 text-amber-800 border-amber-200;
-  }
-  
-  .status-completed {
-    @apply bg-green-100 text-green-800 border-green-200;
-  }
-  
-  .status-cancelled {
-    @apply bg-red-100 text-red-800 border-red-200;
-  }
-  
-  /* Improved mobile tap targets */
-  @media (max-width: 640px) {
-    button, a, select, input[type="checkbox"], input[type="radio"] {
-      @apply min-h-[44px] min-w-[44px];
-    }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
   }
 }
 
-/* Animation classes */
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* Hebrew font overrides */
+html, body {
+  font-family: 'Rubik', 'Heebo', sans-serif;
 }
 
-/* Emoji animations */
-.emoji-pop {
-  display: inline-block;
-  transform-origin: center;
-  transition: transform 0.2s;
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Heebo', 'Rubik', sans-serif;
 }
 
-.emoji-pop:hover {
-  transform: scale(1.5);
-}
-
-/* Improved scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: hsl(var(--background));
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+/* Button variants */
+.button-primary {
+  @apply bg-primary text-white hover:bg-primary/90;
 }

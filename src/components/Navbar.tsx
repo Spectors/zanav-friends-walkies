@@ -20,21 +20,25 @@ const Navbar = () => {
   useEffect(() => {
     // Check auth state on component mount
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      
-      if (data.session) {
-        setIsLoggedIn(true);
+      try {
+        const { data } = await supabase.auth.getSession();
         
-        // Get user profile info
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.session.user.id)
-          .single();
-        
-        if (!error && userData) {
-          setUserInfo(userData);
+        if (data.session) {
+          setIsLoggedIn(true);
+          
+          // Get user profile info
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+          
+          if (!error && userData) {
+            setUserInfo(userData);
+          }
         }
+      } catch (error) {
+        console.error('Error checking auth:', error);
       }
     };
     
@@ -126,7 +130,7 @@ const Navbar = () => {
           {isLoggedIn ? (
             <>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">שלום, {userInfo?.full_name.split(' ')[0] || 'משתמש'}</span>
+                <span className="text-sm font-medium">שלום, {userInfo?.full_name?.split(' ')[0] || 'משתמש'}</span>
                 <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
                   {userInfo?.role === 'giver' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                 </span>
@@ -208,7 +212,7 @@ const Navbar = () => {
               <>
                 <div className="py-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium">שלום, {userInfo?.full_name.split(' ')[0] || 'משתמש'}</span>
+                    <span className="text-sm font-medium">שלום, {userInfo?.full_name?.split(' ')[0] || 'משתמש'}</span>
                     <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
                       {userInfo?.role === 'giver' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                     </span>

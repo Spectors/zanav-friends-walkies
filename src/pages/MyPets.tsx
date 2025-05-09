@@ -20,52 +20,56 @@ const MyPets = () => {
   useEffect(() => {
     // Check if user is logged in
     const checkAuthAndFetchPets = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (!sessionData.session) {
-        navigate('/login');
-        return;
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          navigate('/login');
+          return;
+        }
+        
+        // Get user info
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', sessionData.session.user.id)
+          .single();
+        
+        if (userError || !userData) {
+          console.error('Error fetching user data:', userError);
+          navigate('/login');
+          return;
+        }
+        
+        setUserInfo(userData);
+        
+        // Check if user is an animal owner
+        if (userData.role !== 'owner') {
+          navigate('/dashboard');
+          return;
+        }
+        
+        // Fetch pets owned by the user
+        const { data: petsData, error: petsError } = await supabase
+          .from('pets')
+          .select('*')
+          .eq('owner_id', userData.id);
+        
+        if (petsError) {
+          console.error('Error fetching pets:', petsError);
+          toast({
+            title: "שגיאה בטעינת חיות המחמד",
+            description: petsError.message,
+            variant: "destructive",
+          });
+        } else if (petsData) {
+          setPets(petsData);
+        }
+      } catch (error) {
+        console.error('Unexpected error:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      // Get user info
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', sessionData.session.user.id)
-        .single();
-      
-      if (userError || !userData) {
-        console.error('Error fetching user data:', userError);
-        navigate('/login');
-        return;
-      }
-      
-      setUserInfo(userData);
-      
-      // Check if user is an animal owner
-      if (userData.role !== 'owner') {
-        navigate('/dashboard');
-        return;
-      }
-      
-      // Fetch pets owned by the user
-      const { data: petsData, error: petsError } = await supabase
-        .from('pets')
-        .select('*')
-        .eq('owner_id', userData.id);
-      
-      if (petsError) {
-        console.error('Error fetching pets:', petsError);
-        toast({
-          title: "שגיאה בטעינת חיות המחמד",
-          description: petsError.message,
-          variant: "destructive",
-        });
-      } else if (petsData) {
-        setPets(petsData);
-      }
-      
-      setLoading(false);
     };
     
     checkAuthAndFetchPets();
@@ -117,7 +121,7 @@ const MyPets = () => {
       name: pet.name,
       age: pet.age ? pet.age.toString() : "",
       type: pet.species,
-      breed: "",
+      breed: pet.breed || "",
       description: pet.description || "",
       image: pet.image_url || "",
       needsService: false,
