@@ -16,6 +16,9 @@ console.log('Supabase initialization:', {
   url: supabaseUrl.substring(0, 10) + '...',
 });
 
+// Create an in-memory mockUserDb for demo mode
+const mockUserDb = new Map();
+
 // Create Supabase client
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
@@ -140,21 +143,22 @@ export const mockApi = {
             const mockUser = Array.from(mockUserDb.values())
               .find(user => user.id === value);
             
-if (mockUser) {
-  return { 
-    data: { 
-      id: mockUser.id, 
-      email: mockUser.email,
-      full_name: mockUser.profile?.full_name || 'Mock User',
-      role: mockUser.profile?.role || 'owner',
-      is_verified: false,
-      created_at: new Date().toISOString()
-    }, 
-    error: null 
-  };
-}
+            if (mockUser) {
+              return { 
+                data: { 
+                  id: mockUser.id, 
+                  email: mockUser.email,
+                  full_name: mockUser.profile?.full_name || 'Mock User',
+                  role: mockUser.profile?.role || 'owner',
+                  is_verified: false,
+                  created_at: new Date().toISOString()
+                }, 
+                error: null 
+              };
+            }
+          }
           return { data: null, error: { message: `Mocked DB: No ${table} data available` } };
-        }),
+        }
       }),
       maybeSingle: async () => ({ data: null, error: null }),
       eq: async () => ({ data: [], error: null })
