@@ -108,6 +108,24 @@ const MyPets = () => {
     }
   };
 
+  // Function to transform Pet objects to match PetCard expected format
+  const transformPetData = (pet: Pet) => {
+    return {
+      id: pet.id,
+      ownerId: pet.owner_id,
+      ownerName: userInfo?.full_name || "",
+      name: pet.name,
+      age: pet.age ? pet.age.toString() : "",
+      type: pet.species,
+      breed: "",
+      description: pet.description || "",
+      image: pet.image_url || "",
+      needsService: false,
+      serviceType: "",
+      createdAt: pet.created_at
+    };
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -137,7 +155,7 @@ const MyPets = () => {
               {pets.map((pet) => (
                 <PetCard 
                   key={pet.id} 
-                  pet={pet} 
+                  pet={transformPetData(pet)} 
                   viewType="owner" 
                   onRequestService={handleRequestService}
                 />
