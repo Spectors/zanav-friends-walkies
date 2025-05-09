@@ -1,5 +1,12 @@
+
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
+import type { 
+  AuthResponse, 
+  AuthTokenResponsePassword, 
+  SignInWithPasswordCredentials,
+  SignUpWithPasswordCredentials
+} from '@supabase/supabase-js';
 
 // Get Supabase URL and anon key from environment variables
 // Provide fallback values to prevent crashing when env vars are not available
@@ -99,21 +106,45 @@ export type Verification = {
 // Mock API functions to use when Supabase credentials are missing
 export const mockApi = {
   auth: {
-    getSession: async () => ({ data: { session: null }, error: null }),
-    signInWithPassword: async ({ email, password }) => {
+    getSession: async () => {
+      return { data: { session: null }, error: null } as AuthResponse;
+    },
+    signInWithPassword: async ({ email, password }: SignInWithPasswordCredentials) => {
       const user = mockUserDb.get(email);
       if (user && user.password === password) {
-        return { 
-          data: { 
-            user: { id: user.id, email: user.email }, 
-            session: { user: { id: user.id } } 
-          }, 
-          error: null 
-        };
+        return {
+          data: {
+            user: { 
+              id: user.id, 
+              email: user.email,
+              app_metadata: {},
+              user_metadata: {},
+              aud: 'authenticated',
+              created_at: new Date().toISOString()
+            },
+            session: { 
+              access_token: 'mock_token',
+              token_type: 'bearer',
+              expires_in: 3600,
+              refresh_token: 'mock_refresh',
+              user: { 
+                id: user.id,
+                app_metadata: {},
+                user_metadata: {},
+                aud: 'authenticated',
+                created_at: new Date().toISOString()
+              }
+            }
+          },
+          error: null
+        } as AuthTokenResponsePassword;
       }
-      return { data: { user: null }, error: { message: 'Invalid login credentials' } };
+      return {
+        data: { user: null, session: null },
+        error: { message: 'Invalid login credentials', status: 400 }
+      } as AuthTokenResponsePassword;
     },
-    signUp: async ({ email, password, options }) => {
+    signUp: async ({ email, password, options }: SignUpWithPasswordCredentials) => {
       // Create a mock user
       const id = 'user_' + Date.now().toString();
       const userData = {
@@ -127,13 +158,32 @@ export const mockApi = {
       // Return success response
       return {
         data: { 
-          user: { id, email }, 
-          session: { user: { id } } 
+          user: { 
+            id, 
+            email,
+            app_metadata: {},
+            user_metadata: options?.data || {},
+            aud: 'authenticated',
+            created_at: new Date().toISOString()
+          }, 
+          session: { 
+            access_token: 'mock_token',
+            token_type: 'bearer',
+            expires_in: 3600,
+            refresh_token: 'mock_refresh',
+            user: { 
+              id,
+              app_metadata: {},
+              user_metadata: options?.data || {},
+              aud: 'authenticated',
+              created_at: new Date().toISOString()
+            }
+          }
         }, 
         error: null
-      };
+      } as AuthResponse;
     },
-    signOut: async () => ({ error: null })
+    signOut: async () => ({ error: null }) as AuthResponse
   },
   from: (table: string) => ({
     select: () => ({
@@ -161,7 +211,14 @@ export const mockApi = {
         }
       }),
       maybeSingle: async () => ({ data: null, error: null }),
-      eq: async () => ({ data: [], error: null })
+      // Only define eq once as a method
+      order: () => ({
+        eq: async () => ({ data: [], error: null })
+      }),
+      // Filter methods
+      filter: () => ({
+        eq: async () => ({ data: [], error: null })
+      })
     }),
     insert: async (data: any) => {
       // Handle insertion based on table
