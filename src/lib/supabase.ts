@@ -109,7 +109,12 @@ export const mockApi = {
     getSession: async () => {
       return { data: { session: null }, error: null } as AuthResponse;
     },
-    signInWithPassword: async ({ email, password }: SignInWithPasswordCredentials) => {
+    signInWithPassword: async (credentials: SignInWithPasswordCredentials) => {
+      // Extract email and password from credentials
+      // In Supabase, credentials has the shape { email?: string, password: string, ... }
+      const email = 'email' in credentials ? credentials.email as string : '';
+      const password = credentials.password;
+      
       const user = mockUserDb.get(email);
       if (user && user.password === password) {
         return {
@@ -144,7 +149,13 @@ export const mockApi = {
         error: { message: 'Invalid login credentials', status: 400 }
       } as AuthTokenResponsePassword;
     },
-    signUp: async ({ email, password, options }: SignUpWithPasswordCredentials) => {
+    signUp: async (credentials: SignUpWithPasswordCredentials) => {
+      // Extract email, password and options from credentials
+      // In Supabase, credentials has the shape { email?: string, password: string, options?: {...} }
+      const email = 'email' in credentials ? credentials.email as string : '';
+      const password = credentials.password;
+      const options = credentials.options;
+      
       // Create a mock user
       const id = 'user_' + Date.now().toString();
       const userData = {
