@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../types/supabase';
 
@@ -98,18 +97,76 @@ export type Verification = {
 export const mockApi = {
   auth: {
     getSession: async () => ({ data: { session: null }, error: null }),
-    signInWithPassword: async () => ({ data: { user: null }, error: { message: 'Mocked auth: No credentials provided' } }),
+    signInWithPassword: async ({ email, password }) => {
+      const user = mockUserDb.get(email);
+      if (user && user.password === password) {
+        return { 
+          data: { 
+            user: { id: user.id, email: user.email }, 
+            session: { user: { id: user.id } } 
+          }, 
+          error: null 
+        };
+      }
+      return { data: { user: null }, error: { message: 'Invalid login credentials' } };
+    },
+    signUp: async ({ email, password, options }) => {
+      // Create a mock user
+      const id = 'user_' + Date.now().toString();
+      const userData = {
+        id,
+        email,
+        password,
+        profile: options?.data || {}
+      };
+      mockUserDb.set(email, userData);
+      
+      // Return success response
+      return {
+        data: { 
+          user: { id, email }, 
+          session: { user: { id } } 
+        }, 
+        error: null
+      };
+    },
     signOut: async () => ({ error: null })
   },
   from: (table: string) => ({
     select: () => ({
-      eq: () => ({
-        single: async () => ({ data: null, error: { message: `Mocked DB: No ${table} data available` } })
+      eq: (field: string, value: string) => ({
+        single: async () => {
+          if (table === 'users' && field === 'id') {
+            const mockUser = Array.from(mockUserDb.values())
+              .find(user => user.id === value);
+            
+            if (mockUser) {
+              return { 
+                data: { 
+                  id: mockUser.id, 
+                  email: mockUser.email,
+                  full_name: mockUser.profile?.full_name || 'Mock User',
+                  role: mockUser.profile?.role || 'owner',
+                  is_verified: false,
+                  created_at: new Date().toISOString()
+                }, 
+                error: null 
+              };
+            }
+          }
+          return { data: null, error: { message: `Mocked DB: No ${table} data available` } };
+        }),
       }),
       maybeSingle: async () => ({ data: null, error: null }),
       eq: async () => ({ data: [], error: null })
     }),
-    insert: async () => ({ data: null, error: { message: 'Mocked DB: Insert not available in demo mode' } }),
+    insert: async (data: any) => {
+      // Handle insertion based on table
+      if (table === 'users') {
+        return { data: { ...data, id: 'mock_' + Date.now() }, error: null };
+      }
+      return { data: { ...data, id: 'mock_' + Date.now() }, error: null };
+    },
     update: async () => ({ data: null, error: { message: 'Mocked DB: Update not available in demo mode' } })
   })
 };
@@ -119,6 +176,41 @@ export const mockApi = {
 if (isMissingCredentials) {
   console.warn('Running with mock Supabase client! Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables for full functionality.');
   
-  // This is a simple approach to avoid TypeScript errors while providing mock functionality
-  // In a real application, you would want to create a proper mock implementation
+  // Apply mock implementations to the supabase client
+  supabase.auth.getSession = mockApi.auth.getSession;
+  supabase.auth.signInWithPassword = mockApi.auth.signInWithPassword;
+  supabase.auth.signUp = mockApi.auth.signUp;
+  supabase.auth.signOut = mockApi.auth.signOut;
+  
+  const originalFrom = supabase.from.bind(supabase);
+  supabase.from = (table: string) => {
+    // Return our mock implementation first
+    const mockImpl = mockApi.from(table);
+    const originalImpl = originalFrom(table);
+    
+    return {
+      ...originalImpl,
+      select: (...args: any[]) => {
+        try {
+          return originalImpl.select(...args);
+        } catch (e) {
+          return mockImpl.select();
+        }
+      },
+      insert: (...args: any[]) => {
+        try {
+          return originalImpl.insert(...args);
+        } catch (e) {
+          return mockImpl.insert(args[0]);
+        }
+      },
+      update: (...args: any[]) => {
+        try {
+          return originalImpl.update(...args);
+        } catch (e) {
+          return mockImpl.update();
+        }
+      }
+    };
+  };
 }

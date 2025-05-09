@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -72,12 +73,30 @@ const Register = () => {
         options: {
           data: {
             full_name: `${formData.firstName} ${formData.lastName}`,
-            role: role
+            role: role,
+            phone: formData.phoneNumber
           }
         }
       });
       
       if (error) {
+        if (error.message === 'Failed to fetch') {
+          // Special handling for network errors or mock implementation
+          toast({
+            title: "מצב הדגמה",
+            description: "מערכת ההרשמה פועלת במצב הדגמה. ניתן להמשיך.",
+            variant: "default",
+          });
+          // Simulate successful registration in demo mode
+          await createMockUserProfile(role);
+          // Redirect based on user type
+          if (formData.userType === 'owner') {
+            navigate('/pet-onboarding');
+          } else {
+            navigate('/dashboard');
+          }
+          return;
+        }
         throw error;
       }
       
@@ -100,6 +119,27 @@ const Register = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to create a mock user profile for demo mode
+  const createMockUserProfile = async (role: 'owner' | 'giver') => {
+    try {
+      // In demo mode, create a mock profile in localStorage
+      const mockUser = {
+        id: 'mock_' + Date.now(),
+        full_name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phoneNumber,
+        role: role,
+        is_verified: false,
+        profile_image: null,
+        created_at: new Date().toISOString()
+      };
+      
+      localStorage.setItem('mock_current_user', JSON.stringify(mockUser));
+    } catch (error) {
+      console.error("Error creating mock profile:", error);
     }
   };
 

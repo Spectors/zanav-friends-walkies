@@ -21,6 +21,15 @@ const Navbar = () => {
     // Check auth state on component mount
     const checkAuth = async () => {
       try {
+        // Check for mock user first in localStorage (for demo mode)
+        const mockUserString = localStorage.getItem('mock_current_user');
+        if (mockUserString) {
+          const mockUser = JSON.parse(mockUserString);
+          setIsLoggedIn(true);
+          setUserInfo(mockUser);
+          return;
+        }
+        
         const { data } = await supabase.auth.getSession();
         
         if (data.session) {
@@ -62,6 +71,8 @@ const Navbar = () => {
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
         setUserInfo(null);
+        // Also clear mock user if any
+        localStorage.removeItem('mock_current_user');
       }
     });
     
@@ -79,6 +90,12 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
+      
+      // Also clear mock user if any
+      localStorage.removeItem('mock_current_user');
+      
+      setIsLoggedIn(false);
+      setUserInfo(null);
       
       toast({
         title: "התנתקות בוצעה בהצלחה",
