@@ -223,5 +223,3 @@ export interface Database {
     }
   }
 }
-
-<lov-add-dependency>@supabase/supabase-js@latest</lov-add-dependency>
