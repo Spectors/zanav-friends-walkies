@@ -121,7 +121,7 @@ const MyPets = () => {
       name: pet.name,
       age: pet.age ? pet.age.toString() : "",
       type: pet.species,
-      breed: pet.breed || "",
+      breed: pet.breed || "", // This should work now as we've added breed to the type
       description: pet.description || "",
       image: pet.image_url || "",
       needsService: false,
