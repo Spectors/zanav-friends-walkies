@@ -140,20 +140,19 @@ export const mockApi = {
             const mockUser = Array.from(mockUserDb.values())
               .find(user => user.id === value);
             
-            if (mockUser) {
-              return { 
-                data: { 
-                  id: mockUser.id, 
-                  email: mockUser.email,
-                  full_name: mockUser.profile?.full_name || 'Mock User',
-                  role: mockUser.profile?.role || 'owner',
-                  is_verified: false,
-                  created_at: new Date().toISOString()
-                }, 
-                error: null 
-              };
-            }
-          }
+if (mockUser) {
+  return { 
+    data: { 
+      id: mockUser.id, 
+      email: mockUser.email,
+      full_name: mockUser.profile?.full_name || 'Mock User',
+      role: mockUser.profile?.role || 'owner',
+      is_verified: false,
+      created_at: new Date().toISOString()
+    }, 
+    error: null 
+  };
+}
           return { data: null, error: { message: `Mocked DB: No ${table} data available` } };
         }),
       }),
