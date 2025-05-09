@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dog, User, PawPrint, Calendar, Heart, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { supabase } from '@/lib/supabase';
 
 const Register = () => {
   const location = useLocation();
@@ -24,7 +25,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    userType: initialType,
+    userType: initialType as 'owner' | 'provider',
     serviceType: 'walking',
     phoneNumber: '',
     socialMedia: '',
@@ -35,50 +36,55 @@ const Register = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "שגיאה ❌",
-        description: "הסיסמאות אינן תואמות",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-    
-    // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      toast({
-        title: "שגיאה ❌",
-        description: "יש למלא את כל השדות",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    // Simulate registration API call
-    setTimeout(() => {
-      // Store user info in localStorage (in a real app, you'd store a token)
-      const userInfo = {
-        email: formData.email,
-        userType: formData.userType,
-        name: `${formData.firstName} ${formData.lastName}`,
-        serviceType: formData.userType === 'provider' ? formData.serviceType : null,
-        phoneNumber: formData.phoneNumber || null,
-      };
+    try {
+      if (formData.password !== formData.confirmPassword) {
+        toast({
+          title: "שגיאה ❌",
+          description: "הסיסמאות אינן תואמות",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
       
-      localStorage.setItem('zanav_user', JSON.stringify(userInfo));
+      // Basic validation
+      if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+        toast({
+          title: "שגיאה ❌",
+          description: "יש למלא את כל השדות",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Map userType to Supabase user role
+      const role = formData.userType === 'provider' ? 'giver' : 'owner';
+      
+      // Register with Supabase
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            role: role
+          }
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "ההרשמה הושלמה בהצלחה! 🎉",
         description: "ברוכים הבאים לזנב+",
       });
-      
-      setIsLoading(false);
       
       // Redirect based on user type
       if (formData.userType === 'owner') {
@@ -86,11 +92,19 @@ const Register = () => {
       } else {
         navigate('/dashboard'); // Redirect to dashboard for service providers
       }
-    }, 1000);
+    } catch (error: any) {
+      toast({
+        title: "שגיאה בהרשמה",
+        description: error.message || "אירעה שגיאה בתהליך ההרשמה",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTypeChange = (value: string) => {
-    setFormData(prev => ({ ...prev, userType: value }));
+    setFormData(prev => ({ ...prev, userType: value as 'owner' | 'provider' }));
   };
   
   const handleServiceTypeChange = (value: string) => {

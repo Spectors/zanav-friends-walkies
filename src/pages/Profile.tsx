@@ -9,88 +9,123 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { supabase } from '@/lib/supabase';
+import type { User } from '@/lib/supabase';
 
 const Profile = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phoneNumber: '',
-    serviceType: 'walking',
+    serviceType: 'walk',
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
-    const userInfoStr = localStorage.getItem('zanav_user');
-    if (!userInfoStr) {
-      navigate('/login');
-      return;
-    }
-
-    const parsedUserInfo = JSON.parse(userInfoStr);
-    setUserInfo(parsedUserInfo);
+    const getUserProfile = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        navigate('/login');
+        return;
+      }
+      
+      // Get user profile data
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', sessionData.session.user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user data:', error);
+        toast({
+          title: "שגיאה בטעינת הפרופיל",
+          description: error.message,
+          variant: "destructive",
+        });
+        navigate('/login');
+        return;
+      }
+      
+      setUserInfo(data);
+      
+      // Populate form with user data
+      setFormData({
+        name: data.full_name || '',
+        email: data.email || '',
+        phoneNumber: data.phone || '',
+        serviceType: 'walking', // Default value, can be updated if needed
+      });
+    };
     
-    // Populate form with existing user data
-    setFormData({
-      name: parsedUserInfo.name || '',
-      email: parsedUserInfo.email || '',
-      phoneNumber: parsedUserInfo.phoneNumber || '',
-      serviceType: parsedUserInfo.serviceType || 'walking',
-    });
-  }, [navigate]);
+    getUserProfile();
+  }, [navigate, toast]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Update user info
-    const updatedUserInfo = {
-      ...userInfo,
-      name: formData.name,
-      phoneNumber: formData.phoneNumber,
-      serviceType: userInfo.userType === 'provider' ? formData.serviceType : null,
-    };
-    
-    // Store updated user info in localStorage
-    localStorage.setItem('zanav_user', JSON.stringify(updatedUserInfo));
-    
-    // Update pets if user name changed
-    const petsStr = localStorage.getItem('zanav_pets');
-    if (petsStr && formData.name !== userInfo.name) {
-      const allPets = JSON.parse(petsStr);
-      const updatedPets = allPets.map((pet: any) => {
-        if (pet.ownerId === userInfo.email) {
-          return { ...pet, ownerName: formData.name };
-        }
-        return pet;
+    try {
+      if (!userInfo) return;
+      
+      // Update user profile in Supabase
+      const { error } = await supabase
+        .from('users')
+        .update({
+          full_name: formData.name,
+          phone: formData.phoneNumber
+        })
+        .eq('id', userInfo.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "הפרופיל עודכן בהצלחה!",
+        description: "פרטי המשתמש שלך נשמרו.",
       });
       
-      localStorage.setItem('zanav_pets', JSON.stringify(updatedPets));
+      // Update local state
+      setUserInfo({
+        ...userInfo,
+        full_name: formData.name,
+        phone: formData.phoneNumber
+      });
+    } catch (error: any) {
+      toast({
+        title: "שגיאה בעדכון הפרופיל",
+        description: error.message || "אירעה שגיאה בעדכון פרטי המשתמש",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
-    
-    toast({
-      title: "הפרופיל עודכן בהצלחה!",
-      description: "פרטי המשתמש שלך נשמרו.",
-    });
-    
-    setIsLoading(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('zanav_user');
-    toast({
-      title: "התנתקת בהצלחה",
-      description: "להתראות בפעם הבאה!",
-    });
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "התנתקת בהצלחה",
+        description: "להתראות בפעם הבאה!",
+      });
+      navigate('/login');
+    } catch (error: any) {
+      toast({
+        title: "שגיאה בהתנתקות",
+        description: error.message || "אירעה שגיאה בתהליך ההתנתקות",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!userInfo) {
@@ -142,13 +177,13 @@ const Profile = () => {
                   <Input
                     id="phoneNumber"
                     name="phoneNumber"
-                    value={formData.phoneNumber}
+                    value={formData.phoneNumber || ''}
                     onChange={handleChange}
                     placeholder="050-1234567"
                   />
                 </div>
                 
-                {userInfo.userType === 'provider' && (
+                {userInfo.role === 'giver' && (
                   <div className="space-y-2">
                     <Label htmlFor="serviceType">סוג שירות</Label>
                     <Select 
@@ -159,8 +194,8 @@ const Profile = () => {
                         <SelectValue placeholder="בחר סוג שירות" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="walking">טיולים 🐕</SelectItem>
-                        <SelectItem value="sitting">פנסיון 🏠</SelectItem>
+                        <SelectItem value="walk">טיולים 🐕</SelectItem>
+                        <SelectItem value="boarding">פנסיון 🏠</SelectItem>
                         <SelectItem value="grooming">טיפוח ✂️</SelectItem>
                         <SelectItem value="training">אילוף 🎓</SelectItem>
                       </SelectContent>

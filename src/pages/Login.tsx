@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dog, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { supabase } from '@/lib/supabase';
 
 const Login = () => {
   const { toast } = useToast();
@@ -17,7 +18,7 @@ const Login = () => {
     email: '',
     password: '',
   });
-  const [userType, setUserType] = useState('owner');
+  const [userType, setUserType] = useState<'owner' | 'giver'>('owner');
   const [serviceType, setServiceType] = useState('walking');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,61 +27,60 @@ const Login = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Basic validation
-    if (!formData.email || !formData.password) {
+    try {
+      // Basic validation
+      if (!formData.email || !formData.password) {
+        toast({
+          title: "שגיאה",
+          description: "יש למלא את כל השדות",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.user) {
+        // Get user profile data
+        const { data: userData, error: profileError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        
+        if (profileError) {
+          throw profileError;
+        }
+        
+        toast({
+          title: "התחברות הצליחה!",
+          description: "ברוכים השבים לזאנב+",
+        });
+        
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
       toast({
-        title: "שגיאה",
-        description: "יש למלא את כל השדות",
+        title: "שגיאה בהתחברות",
+        description: error.message || "אירעה שגיאה בתהליך ההתחברות",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    // Create user info based on form data
-    const userInfo = {
-      email: formData.email,
-      userType: userType,
-      name: formData.email.split('@')[0],
-      serviceType: userType === 'provider' ? serviceType : null,
-      phoneNumber: '050-1234567', // Default phone number for demo
-    };
-    
-    // Store user info in localStorage
-    localStorage.setItem('zanav_user', JSON.stringify(userInfo));
-    
-    // Initialize other storage if needed
-    if (!localStorage.getItem('zanav_services')) {
-      localStorage.setItem('zanav_services', JSON.stringify([]));
-    }
-    
-    if (!localStorage.getItem('zanav_users')) {
-      // Add current user to users collection
-      const users = [userInfo];
-      localStorage.setItem('zanav_users', JSON.stringify(users));
-    } else {
-      // Check if user exists, if not add them
-      const usersStr = localStorage.getItem('zanav_users');
-      const users = JSON.parse(usersStr!);
-      const userExists = users.some((user: any) => user.email === userInfo.email);
-      
-      if (!userExists) {
-        users.push(userInfo);
-        localStorage.setItem('zanav_users', JSON.stringify(users));
-      }
-    }
-    
-    toast({
-      title: "התחברות הצליחה!",
-      description: "ברוכים השבים לזאנב+",
-    });
-    
-    setIsLoading(false);
-    navigate('/dashboard');
   };
 
   return (
@@ -143,16 +143,16 @@ const Login = () => {
                 </Button>
                 <Button
                   type="button"
-                  variant={userType === 'provider' ? 'default' : 'outline'}
+                  variant={userType === 'giver' ? 'default' : 'outline'}
                   className="flex-1"
-                  onClick={() => setUserType('provider')}
+                  onClick={() => setUserType('giver')}
                 >
                   נותן שירות
                 </Button>
               </div>
             </div>
             
-            {userType === 'provider' && (
+            {userType === 'giver' && (
               <div className="space-y-2">
                 <Label htmlFor="serviceType">סוג שירות</Label>
                 <Select value={serviceType} onValueChange={setServiceType}>

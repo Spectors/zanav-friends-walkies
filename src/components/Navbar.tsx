@@ -1,32 +1,69 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, User, Dog, LogOut, Phone, Heart, Calendar, PawPrint } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/lib/supabase';
+import type { User } from '@/lib/supabase';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const { toast } = useToast();
 
   useEffect(() => {
-    const userInfoStr = localStorage.getItem('zanav_user');
-    if (userInfoStr) {
-      try {
-        const userObj = JSON.parse(userInfoStr);
+    // Check auth state on component mount
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (data.session) {
         setIsLoggedIn(true);
-        setUserInfo(userObj);
-      } catch (error) {
-        console.error('Error parsing user info', error);
-        localStorage.removeItem('zanav_user');
+        
+        // Get user profile info
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.session.user.id)
+          .single();
+        
+        if (!error && userData) {
+          setUserInfo(userData);
+        }
       }
-    }
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setIsLoggedIn(true);
+        
+        // Get user profile info
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (!error && userData) {
+          setUserInfo(userData);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setUserInfo(null);
+      }
+    });
+    
+    // Cleanup subscription
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Close mobile menu when changing routes
@@ -34,17 +71,24 @@ const Navbar = () => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('zanav_user');
-    setIsLoggedIn(false);
-    setUserInfo(null);
-    
-    toast({
-      title: "התנתקות בוצעה בהצלחה",
-      description: "להתראות בקרוב!",
-    });
-    
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      
+      toast({
+        title: "התנתקות בוצעה בהצלחה",
+        description: "להתראות בקרוב!",
+      });
+      
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "שגיאה בהתנתקות",
+        description: "אנא נסה שוב מאוחר יותר",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -81,9 +125,9 @@ const Navbar = () => {
           {isLoggedIn ? (
             <>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">שלום, {userInfo?.name || 'משתמש'}</span>
+                <span className="text-sm font-medium">שלום, {userInfo?.full_name.split(' ')[0] || 'משתמש'}</span>
                 <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
-                  {userInfo?.userType === 'provider' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
+                  {userInfo?.role === 'giver' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                 </span>
               </div>
               <Button 
@@ -163,9 +207,9 @@ const Navbar = () => {
               <>
                 <div className="py-2">
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium">שלום, {userInfo?.name || 'משתמש'}</span>
+                    <span className="text-sm font-medium">שלום, {userInfo?.full_name.split(' ')[0] || 'משתמש'}</span>
                     <span className="text-xs bg-gradient-to-r from-accent/20 to-primary/20 px-2 py-1 rounded">
-                      {userInfo?.userType === 'provider' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
+                      {userInfo?.role === 'giver' ? '🧑‍💼 נותן שירות' : '🐾 בעל כלב'}
                     </span>
                   </div>
                   <Button 

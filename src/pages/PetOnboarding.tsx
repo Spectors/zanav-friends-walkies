@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dog, Cat, Upload, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { supabase } from "@/lib/supabase";
 
 const petFormSchema = z.object({
   name: z.string().min(2, { message: "שם חיית המחמד חייב להכיל לפחות 2 תווים" }),
@@ -37,6 +37,7 @@ const PetOnboarding = () => {
   const navigate = useNavigate();
   const [petImage, setPetImage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const form = useForm<PetFormValues>({
     resolver: zodResolver(petFormSchema),
@@ -51,63 +52,93 @@ const PetOnboarding = () => {
   
   useEffect(() => {
     // Check if user is logged in
-    const userInfo = localStorage.getItem('zanav_user');
-    if (!userInfo) {
-      navigate('/login');
-    }
-  }, [navigate]);
-
-  const onSubmit = (data: PetFormValues) => {
-    setIsUploading(true);
-    
-    // Get existing user data
-    const userInfoStr = localStorage.getItem('zanav_user');
-    if (!userInfoStr) {
-      toast({
-        title: "שגיאה בכניסה למערכת",
-        description: "אנא התחבר/י מחדש",
-        variant: "destructive",
-      });
-      navigate('/login');
-      return;
-    }
-    
-    const userInfo = JSON.parse(userInfoStr);
-    
-    // Get existing pets or initialize empty array
-    const existingPets = JSON.parse(localStorage.getItem('zanav_pets') || '[]');
-    
-    // Create new pet object
-    const newPet = {
-      id: `pet-${Date.now()}`,
-      ownerId: userInfo.email,
-      ownerName: userInfo.name,
-      name: data.name,
-      age: data.age,
-      type: data.type,
-      breed: data.breed || null,
-      description: data.description || null,
-      image: petImage,
-      needsService: false,
-      serviceType: null,
-      createdAt: new Date().toISOString(),
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      
+      if (!data.session) {
+        navigate('/login');
+        return;
+      }
+      
+      setUserId(data.session.user.id);
+      
+      // Check if user is an owner
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.session.user.id)
+        .single();
+      
+      if (error || (userData && userData.role !== 'owner')) {
+        // If not an owner, redirect to dashboard
+        navigate('/dashboard');
+      }
     };
     
-    // Add the new pet to the array
-    existingPets.push(newPet);
+    checkAuth();
+  }, [navigate]);
+
+  const onSubmit = async (data: PetFormValues) => {
+    if (!userId) return;
     
-    // Save to localStorage
-    localStorage.setItem('zanav_pets', JSON.stringify(existingPets));
+    setIsUploading(true);
     
-    // Show success message
-    setTimeout(() => {
-      setIsUploading(false);
+    try {
+      let imageUrl = null;
+      
+      // If there's an image, upload it to Supabase Storage
+      if (petImage) {
+        // Convert base64 to file
+        const base64Response = await fetch(petImage);
+        const blob = await base64Response.blob();
+        const file = new File([blob], `pet-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        
+        // Upload to Supabase storage
+        const { data: storageData, error: storageError } = await supabase.storage
+          .from('pets')
+          .upload(`images/${userId}/${file.name}`, file);
+        
+        if (storageError) throw storageError;
+        
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('pets')
+          .getPublicUrl(storageData.path);
+        
+        imageUrl = urlData.publicUrl;
+      }
+      
+      // Insert pet into database
+      const { data: petData, error } = await supabase
+        .from('pets')
+        .insert({
+          owner_id: userId,
+          name: data.name,
+          age: parseInt(data.age, 10) || 0,
+          species: data.type as 'dog' | 'cat',
+          gender: null, // Not collected in the form
+          description: data.description || null,
+          image_url: imageUrl
+        })
+        .select();
+      
+      if (error) throw error;
+      
       toast({
         title: `${data.name} נוסף בהצלחה! 🎉`,
         description: "פרטי חיית המחמד נשמרו",
       });
-      navigate('/dashboard');
-    }, 1000);
+      
+      navigate('/my-pets');
+    } catch (error: any) {
+      toast({
+        title: "שגיאה בהוספת חיית המחמד",
+        description: error.message || "אירעה שגיאה בשמירת פרטי חיית המחמד",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

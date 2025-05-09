@@ -6,80 +6,105 @@ import Footer from '@/components/Footer';
 import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+import type { Pet } from '@/lib/supabase';
 
 const MyPets = () => {
   const navigate = useNavigate();
-  const [pets, setPets] = useState<any[]>([]);
+  const { toast } = useToast();
+  const [pets, setPets] = useState<Pet[]>([]);
   const [userInfo, setUserInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if user is logged in
-    const userInfoStr = localStorage.getItem('zanav_user');
-    if (!userInfoStr) {
-      navigate('/login');
-      return;
-    }
+    const checkAuthAndFetchPets = async () => {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        navigate('/login');
+        return;
+      }
+      
+      // Get user info
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', sessionData.session.user.id)
+        .single();
+      
+      if (userError || !userData) {
+        console.error('Error fetching user data:', userError);
+        navigate('/login');
+        return;
+      }
+      
+      setUserInfo(userData);
+      
+      // Check if user is an animal owner
+      if (userData.role !== 'owner') {
+        navigate('/dashboard');
+        return;
+      }
+      
+      // Fetch pets owned by the user
+      const { data: petsData, error: petsError } = await supabase
+        .from('pets')
+        .select('*')
+        .eq('owner_id', userData.id);
+      
+      if (petsError) {
+        console.error('Error fetching pets:', petsError);
+        toast({
+          title: "שגיאה בטעינת חיות המחמד",
+          description: petsError.message,
+          variant: "destructive",
+        });
+      } else if (petsData) {
+        setPets(petsData);
+      }
+      
+      setLoading(false);
+    };
+    
+    checkAuthAndFetchPets();
+  }, [navigate, toast]);
 
-    const parsedUserInfo = JSON.parse(userInfoStr);
-    setUserInfo(parsedUserInfo);
-
-    // Check if user is an animal owner
-    if (parsedUserInfo.userType !== 'animalOwner') {
-      navigate('/dashboard');
-      return;
-    }
-
-    // Get pets data
-    const petsStr = localStorage.getItem('zanav_pets');
-    if (petsStr) {
-      const allPets = JSON.parse(petsStr);
-      // Filter pets by owner
-      const userPets = allPets.filter((pet: any) => pet.ownerId === parsedUserInfo.email);
-      setPets(userPets);
-    }
-
-    setLoading(false);
-  }, [navigate]);
-
-  const handleRequestService = (petId: string, serviceType: string, serviceDate: string | undefined, serviceTimeFrom: string, serviceTimeTo: string, serviceDuration: string) => {
-    // Update the pet to mark it as needing a service
-    const petsStr = localStorage.getItem('zanav_pets');
-    if (petsStr) {
-      const allPets = JSON.parse(petsStr);
-      const updatedPets = allPets.map((pet: any) => {
-        if (pet.id === petId) {
-          return {
-            ...pet,
-            needsService: true,
-            serviceType,
-            serviceDate,
-            serviceTimeFrom,
-            serviceTimeTo,
-            serviceDuration
-          };
-        }
-        return pet;
+  const handleRequestService = async (petId: string, serviceType: string, serviceDate: string | undefined, serviceTimeFrom: string, serviceTimeTo: string, serviceDuration: string) => {
+    try {
+      // Create a new service request in Supabase
+      const { data, error } = await supabase
+        .from('service_requests')
+        .insert({
+          pet_id: petId,
+          owner_id: userInfo.id,
+          service_type: serviceType as 'walk' | 'grooming' | 'boarding' | 'training',
+          date: serviceDate,
+          time_from: serviceTimeFrom,
+          time_to: serviceTimeTo,
+          duration: parseInt(serviceDuration, 10) || null,
+          status: 'open'
+        })
+        .select();
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "בקשת השירות נשלחה בהצלחה!",
+        description: "נותני שירות יוכלו להגיש הצעות בקרוב.",
       });
       
-      localStorage.setItem('zanav_pets', JSON.stringify(updatedPets));
-      
-      // Update local state
-      setPets(prevPets => 
-        prevPets.map(pet => 
-          pet.id === petId 
-            ? {
-                ...pet,
-                needsService: true,
-                serviceType,
-                serviceDate,
-                serviceTimeFrom,
-                serviceTimeTo,
-                serviceDuration
-              }
-            : pet
-        )
-      );
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast({
+        title: "שגיאה בשליחת הבקשה",
+        description: error.message || "אירעה שגיאה בשליחת בקשת השירות",
+        variant: "destructive",
+      });
     }
   };
 
