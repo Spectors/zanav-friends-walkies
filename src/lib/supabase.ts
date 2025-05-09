@@ -27,6 +27,7 @@ export type Pet = {
   name: string;
   age: number;
   species: 'dog' | 'cat';
+  breed?: string | null;
   gender?: string | null;
   description?: string | null;
   image_url?: string | null;
