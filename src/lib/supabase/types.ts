@@ -1,5 +1,6 @@
 
-// Types exported from supabase.ts
+// Basic types that we'll need for the application
+// These will be replaced with proper database types once we set up Supabase correctly
 
 export type User = {
   id: string;
@@ -25,6 +26,7 @@ export type Pet = {
   created_at: string;
 };
 
+// Export basic service-related types
 export type ServiceRequest = {
   id: string;
   pet_id: string;

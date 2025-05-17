@@ -1,5 +1,5 @@
 
-// This file now re-exports everything from the refactored module structure
+// This file re-exports from the refactored module structure
 // to maintain backward compatibility with existing imports
 
 export * from './supabase/index';
