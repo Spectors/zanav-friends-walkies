@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -114,81 +115,79 @@ const Profile = () => {
             <p className="text-muted-foreground">עריכת פרטי המשתמש שלך</p>
           </div>
           
-          <Card>
-            <CardContent className="p-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">שם מלא</Label>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    placeholder="השם המלא שלך"
-                  />
-                </div>
+          <div className="bg-white rounded-lg border p-6 shadow-sm">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="fullName">שם מלא</Label>
+                <Input
+                  id="fullName"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  placeholder="השם המלא שלך"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email">דואר אלקטרוני</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  disabled
+                  className="bg-muted"
+                />
+                <p className="text-xs text-gray-500">
+                  לא ניתן לשנות את כתובת הדואר האלקטרוני
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone">מספר טלפון</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  value={formData.phone || ''}
+                  onChange={handleChange}
+                  placeholder="050-1234567"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role">תפקיד</Label>
+                <Select 
+                  value={formData.role} 
+                  onValueChange={handleRoleChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="בחר תפקיד" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="owner">מנהל</SelectItem>
+                    <SelectItem value="giver">מתנדב</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex flex-col space-y-4 pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'שומר שינויים...' : 'שמירת שינויים'}
+                </Button>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="email">דואר אלקטרוני</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    className="bg-muted"
-                  />
-                  <p className="text-xs text-gray-500">
-                    לא ניתן לשנות את כתובת הדואר האלקטרוני
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">מספר טלפון</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    value={formData.phone || ''}
-                    onChange={handleChange}
-                    placeholder="050-1234567"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="role">תפקיד</Label>
-                  <Select 
-                    value={formData.role} 
-                    onValueChange={handleRoleChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="בחר תפקיד" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="owner">מנהל</SelectItem>
-                      <SelectItem value="giver">מתנדב</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex flex-col space-y-4 pt-4">
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                  >
-                    {isLoading ? 'שומר שינויים...' : 'שמירת שינויים'}
-                  </Button>
-                  
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate('/login')}
-                  >
-                    התנתקות
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate('/login')}
+                >
+                  התנתקות
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       </main>
       
