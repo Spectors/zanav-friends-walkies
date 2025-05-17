@@ -43,7 +43,7 @@ const HomePage = () => {
         </section>
 
         {/* Services Section */}
-        <section className="section bg-white">
+        <section className="py-16 bg-white">
           <div className="container-custom">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">השירותים שלנו</h2>
@@ -95,7 +95,7 @@ const HomePage = () => {
         </section>
 
         {/* How It Works */}
-        <section className="section bg-gray-50">
+        <section className="py-16 bg-gray-50">
           <div className="container-custom">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">איך זה עובד?</h2>
@@ -144,7 +144,7 @@ const HomePage = () => {
         </section>
 
         {/* Testimonials */}
-        <section className="section bg-white">
+        <section className="py-16 bg-white">
           <div className="container-custom">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4">לקוחות מרוצים</h2>

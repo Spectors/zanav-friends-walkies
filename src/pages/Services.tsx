@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,88 +9,7 @@ import { MapPin, Search, Calendar, Dog, Star, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ExpandableListItem from '@/components/ExpandableListItem';
-
-// Sample data - in a real app this would come from an API
-const serviceProviders = [
-  {
-    id: 1,
-    name: 'יוסי לוי',
-    title: 'מטייל כלבים וחתולים מקצועי',
-    rating: 4.9,
-    reviews: 127,
-    location: 'תל אביב',
-    image: 'https://i.pravatar.cc/150?img=11',
-    services: ['טיולים', 'חתולים'],
-    price: 50,
-    availability: 'זמין היום',
-    petTypes: ['כלבים', 'חתולים']
-  },
-  {
-    id: 2,
-    name: 'רותי כהן',
-    title: 'מטפלת בכלבים וחתולים בביתה',
-    rating: 4.8,
-    reviews: 95,
-    location: 'חיפה',
-    image: 'https://i.pravatar.cc/150?img=5',
-    services: ['פנסיון', 'טיפוח'],
-    price: 120,
-    availability: 'זמינה ממחר',
-    petTypes: ['כלבים', 'חתולים']
-  },
-  {
-    id: 3,
-    name: 'דני אברהם',
-    title: 'מאלף כלבים מוסמך',
-    rating: 5.0,
-    reviews: 64,
-    location: 'ירושלים',
-    image: 'https://i.pravatar.cc/150?img=3',
-    services: ['אילוף'],
-    price: 200,
-    availability: 'זמין השבוע',
-    petTypes: ['כלבים']
-  },
-  {
-    id: 4,
-    name: 'מיכל פרץ',
-    title: 'מטיילת כלבים וחתולים ומטפלת',
-    rating: 4.7,
-    reviews: 83,
-    location: 'רמת גן',
-    image: 'https://i.pravatar.cc/150?img=9',
-    services: ['טיולים', 'פנסיון'],
-    price: 60,
-    availability: 'זמינה היום',
-    petTypes: ['כלבים', 'חתולים']
-  },
-  {
-    id: 5,
-    name: 'אלי דוד',
-    title: 'ספר כלבים וחתולים מקצועי',
-    rating: 4.6,
-    reviews: 42,
-    location: 'ראשון לציון',
-    image: 'https://i.pravatar.cc/150?img=12',
-    services: ['טיפוח'],
-    price: 150,
-    availability: 'זמין היום',
-    petTypes: ['כלבים', 'חתולים']
-  },
-  {
-    id: 6,
-    name: 'נועה שלום',
-    title: 'מטפלת ומאלפת חיות מחמד',
-    rating: 4.9,
-    reviews: 56,
-    location: 'הרצליה',
-    image: 'https://i.pravatar.cc/150?img=23',
-    services: ['אילוף', 'טיולים'],
-    price: 120,
-    availability: 'זמינה ממחר',
-    petTypes: ['כלבים', 'חתולים']
-  },
-];
+import { mockServiceProviders as serviceProviders } from '@/lib/supabase/index';
 
 const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');

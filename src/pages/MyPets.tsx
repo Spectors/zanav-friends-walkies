@@ -7,43 +7,12 @@ import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Temporary mock data for development with correct type for "type" property
-const MOCK_PETS = [
-  {
-    id: '1',
-    ownerId: 'user1',
-    ownerName: 'דני כהן',
-    name: 'רקסי',
-    age: '3',
-    type: 'dog' as const, // Explicitly typed as "dog"
-    breed: 'לברדור',
-    description: 'כלב חברותי מאוד שאוהב לשחק',
-    image: '/images/dog1.jpg',
-    needsService: false,
-    serviceType: '',
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    ownerId: 'user1',
-    ownerName: 'דני כהן',
-    name: 'מיצי',
-    age: '2',
-    type: 'cat' as const, // Explicitly typed as "cat"
-    breed: 'חתול רחוב',
-    description: 'חתולה שקטה שאוהבת לישון',
-    image: '/images/cat1.jpg',
-    needsService: false,
-    serviceType: '',
-    createdAt: new Date().toISOString()
-  }
-];
+import { mockPets } from '@/lib/supabase/index';
 
 const MyPets = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [pets, setPets] = useState(MOCK_PETS);
+  const [pets, setPets] = useState(mockPets);
   const [loading, setLoading] = useState(false);
 
   // For now we're using mock data instead of Supabase
