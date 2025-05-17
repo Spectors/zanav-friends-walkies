@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -7,7 +6,7 @@ import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { mockPets, Pet } from '@/lib/supabase/index';
+import { mockPets, Pet } from '@/lib/mockData';
 
 const MyPets = () => {
   const navigate = useNavigate();

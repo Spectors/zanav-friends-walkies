@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dog, User, PawPrint, Calendar, Heart, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/lib/mockData';
 
 const Register = () => {
   const location = useLocation();

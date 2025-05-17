@@ -20,7 +20,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Dog, Cat, Upload, Calendar } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/mockData";
 
 const petFormSchema = z.object({
   name: z.string().min(2, { message: "שם חיית המחמד חייב להכיל לפחות 2 תווים" }),

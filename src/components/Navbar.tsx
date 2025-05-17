@@ -1,17 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Menu, X, User as UserIcon, Dog, LogOut, Phone, Heart, Calendar, PawPrint } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { supabase } from '@/lib/supabase';
-import type { User as SupabaseUser } from '@/lib/supabase';
+import { supabase, User } from '@/lib/mockData';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInfo, setUserInfo] = useState<SupabaseUser | null>(null);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
