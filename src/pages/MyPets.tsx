@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-// Temporary mock data for development
+// Temporary mock data for development with correct type for "type" property
 const MOCK_PETS = [
   {
     id: '1',
@@ -16,7 +16,7 @@ const MOCK_PETS = [
     ownerName: 'דני כהן',
     name: 'רקסי',
     age: '3',
-    type: 'dog',
+    type: 'dog' as const, // Explicitly typed as "dog"
     breed: 'לברדור',
     description: 'כלב חברותי מאוד שאוהב לשחק',
     image: '/images/dog1.jpg',
@@ -30,7 +30,7 @@ const MOCK_PETS = [
     ownerName: 'דני כהן',
     name: 'מיצי',
     age: '2',
-    type: 'cat',
+    type: 'cat' as const, // Explicitly typed as "cat"
     breed: 'חתול רחוב',
     description: 'חתולה שקטה שאוהבת לישון',
     image: '/images/cat1.jpg',
