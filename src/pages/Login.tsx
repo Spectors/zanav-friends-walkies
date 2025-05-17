@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Dog, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { supabase } from '@/lib/mockData';
+import { mockAuth } from '@/lib/mockData';
 
 const Login = () => {
   const { toast } = useToast();
@@ -42,8 +42,8 @@ const Login = () => {
         return;
       }
       
-      // Sign in with Supabase
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Sign in with mock auth
+      const { data, error } = await mockAuth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });
@@ -52,18 +52,7 @@ const Login = () => {
         throw error;
       }
       
-      if (data.user) {
-        // Get user profile data
-        const { data: userData, error: profileError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-        
-        if (profileError) {
-          throw profileError;
-        }
-        
+      if (data.user) {        
         toast({
           title: "התחברות הצליחה!",
           description: "ברוכים השבים לזאנב+",

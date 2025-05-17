@@ -3,130 +3,103 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { supabase, User } from '@/lib/mockData';
+import { mockAuth, mockDatabase, User } from '@/lib/mockData';
 
 const Profile = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    role: 'owner' as 'owner' | 'giver'
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
-  const [userInfo, setUserInfo] = useState<User | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phoneNumber: '',
-    serviceType: 'walk',
-  });
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in
     const getUserProfile = async () => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      
-      if (!sessionData.session) {
-        navigate('/login');
-        return;
-      }
-      
-      // Get user profile data
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', sessionData.session.user.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching user data:', error);
+      try {
+        const { data: sessionData } = await mockAuth.getSession();
+        
+        if (!sessionData.session) {
+          navigate('/login');
+          return;
+        }
+        
+        // Get full profile data
+        const userData = sessionData.session.user;
+                
+        if (userData) {
+          setUser(userData);
+          setFormData({
+            fullName: userData.full_name || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            role: userData.role || 'owner',
+          });
+        }
+      } catch (error) {
         toast({
-          title: "שגיאה בטעינת הפרופיל",
-          description: error.message,
+          title: "שגיאה בטעינת פרופיל",
+          description: "לא ניתן לטעון את פרטי הפרופיל שלך",
           variant: "destructive",
         });
-        navigate('/login');
-        return;
+      } finally {
+        setIsLoading(false);
       }
-      
-      setUserInfo(data);
-      
-      // Populate form with user data
-      setFormData({
-        name: data.full_name || '',
-        email: data.email || '',
-        phoneNumber: data.phone || '',
-        serviceType: 'walking', // Default value, can be updated if needed
-      });
     };
     
     getUserProfile();
-  }, [navigate, toast]);
-
+  }, [navigate]);
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-
+  
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({ ...prev, role: value as 'owner' | 'giver' }));
+  };
+  
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     
     try {
-      if (!userInfo) return;
+      if (!user) return;
       
-      // Update user profile in Supabase
-      const { error } = await supabase
+      // Update profile in database
+      const { error } = await mockDatabase
         .from('users')
         .update({
-          full_name: formData.name,
-          phone: formData.phoneNumber
+          full_name: formData.fullName,
+          phone: formData.phone,
+          role: formData.role,
         })
-        .eq('id', userInfo.id);
+        .eq('id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
       
       toast({
-        title: "הפרופיל עודכן בהצלחה!",
-        description: "פרטי המשתמש שלך נשמרו.",
+        title: "פרופיל עודכן בהצלחה",
+        description: "פרטי הפרופיל שלך עודכנו",
       });
-      
-      // Update local state
-      setUserInfo({
-        ...userInfo,
-        full_name: formData.name,
-        phone: formData.phoneNumber
-      });
-    } catch (error: any) {
+    } catch (error) {
       toast({
-        title: "שגיאה בעדכון הפרופיל",
-        description: error.message || "אירעה שגיאה בעדכון פרטי המשתמש",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      toast({
-        title: "התנתקת בהצלחה",
-        description: "להתראות בפעם הבאה!",
-      });
-      navigate('/login');
-    } catch (error: any) {
-      toast({
-        title: "שגיאה בהתנתקות",
-        description: error.message || "אירעה שגיאה בתהליך ההתנתקות",
+        title: "שגיאה בעדכון פרופיל",
+        description: "לא ניתן לעדכן את פרטי הפרופיל שלך",
         variant: "destructive",
       });
     }
   };
-
-  if (!userInfo) {
+  
+  if (isLoading) {
     return null; // or loading state
   }
 
@@ -145,11 +118,11 @@ const Profile = () => {
             <CardContent className="p-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">שם מלא</Label>
+                  <Label htmlFor="fullName">שם מלא</Label>
                   <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
+                    id="fullName"
+                    name="fullName"
+                    value={formData.fullName}
                     onChange={handleChange}
                     placeholder="השם המלא שלך"
                   />
@@ -171,35 +144,31 @@ const Profile = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">מספר טלפון</Label>
+                  <Label htmlFor="phone">מספר טלפון</Label>
                   <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    value={formData.phoneNumber || ''}
+                    id="phone"
+                    name="phone"
+                    value={formData.phone || ''}
                     onChange={handleChange}
                     placeholder="050-1234567"
                   />
                 </div>
                 
-                {userInfo.role === 'giver' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="serviceType">סוג שירות</Label>
-                    <Select 
-                      value={formData.serviceType} 
-                      onValueChange={(value) => setFormData(prev => ({ ...prev, serviceType: value }))}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="בחר סוג שירות" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="walk">טיולים 🐕</SelectItem>
-                        <SelectItem value="boarding">פנסיון 🏠</SelectItem>
-                        <SelectItem value="grooming">טיפוח ✂️</SelectItem>
-                        <SelectItem value="training">אילוף 🎓</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                <div className="space-y-2">
+                  <Label htmlFor="role">תפקיד</Label>
+                  <Select 
+                    value={formData.role} 
+                    onValueChange={handleRoleChange}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="בחר תפקיד" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="owner">מנהל</SelectItem>
+                      <SelectItem value="giver">מתנדב</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <div className="flex flex-col space-y-4 pt-4">
                   <Button 
@@ -212,7 +181,7 @@ const Profile = () => {
                   <Button 
                     type="button"
                     variant="outline"
-                    onClick={handleLogout}
+                    onClick={() => navigate('/login')}
                   >
                     התנתקות
                   </Button>

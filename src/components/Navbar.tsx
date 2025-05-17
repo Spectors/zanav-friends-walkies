@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X, User as UserIcon, Dog, LogOut, Phone, Heart, Calendar, PawPrint } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { supabase, User } from '@/lib/mockData';
+import { mockAuth, User } from '@/lib/mockData';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -20,29 +20,19 @@ const Navbar = () => {
     const checkAuth = async () => {
       try {
         // Check for mock user first in localStorage (for demo mode)
-        const mockUserString = localStorage.getItem('mock_current_user');
+        const mockUserString = localStorage.getItem('mock_auth_user');
         if (mockUserString) {
           const mockUser = JSON.parse(mockUserString);
           setIsLoggedIn(true);
-          setUserInfo(mockUser);
+          setUserInfo(mockUser.user);
           return;
         }
         
-        const { data } = await supabase.auth.getSession();
+        const { data } = await mockAuth.getSession();
         
         if (data.session) {
           setIsLoggedIn(true);
-          
-          // Get user profile info
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', data.session.user.id)
-            .single();
-          
-          if (!error && userData) {
-            setUserInfo(userData);
-          }
+          setUserInfo(data.session.user);
         }
       } catch (error) {
         console.error('Error checking auth:', error);
@@ -52,25 +42,15 @@ const Navbar = () => {
     checkAuth();
     
     // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: authListener } = mockAuth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         setIsLoggedIn(true);
-        
-        // Get user profile info
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (!error && userData) {
-          setUserInfo(userData);
-        }
+        setUserInfo(session.user);
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
         setUserInfo(null);
         // Also clear mock user if any
-        localStorage.removeItem('mock_current_user');
+        localStorage.removeItem('mock_auth_user');
       }
     });
     
@@ -87,10 +67,10 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      await mockAuth.signOut();
       
       // Also clear mock user if any
-      localStorage.removeItem('mock_current_user');
+      localStorage.removeItem('mock_auth_user');
       
       setIsLoggedIn(false);
       setUserInfo(null);

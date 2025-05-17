@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -14,14 +15,14 @@ const MyPets = () => {
   const [pets, setPets] = useState<Pet[]>(mockPets);
   const [loading, setLoading] = useState(false);
 
-  // For now we're using mock data instead of Supabase
+  // For now we're using mock data instead of a database
   useEffect(() => {
     setLoading(false);
   }, []);
 
   const handleRequestService = (petId: string, serviceType: string, serviceDate: string | undefined, serviceTimeFrom: string, serviceTimeTo: string, serviceDuration: string) => {
     try {
-      // In the future, this will create a service request in Supabase
+      // In the future, this will create a service request
       toast({
         title: "בקשת השירות נשלחה בהצלחה!",
         description: "נותני שירות יוכלו להגיש הצעות בקרוב.",

@@ -9,7 +9,7 @@ import { MapPin, Search, Calendar, Dog, Star, Cat } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ExpandableListItem from '@/components/ExpandableListItem';
-import { mockServiceProviders as serviceProviders } from '@/lib/supabase/index';
+import { mockServiceProviders } from '@/lib/mockData';
 
 const Services = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,7 +21,7 @@ const Services = () => {
     setSearchTerm(e.target.value);
   };
 
-  const filteredProviders = serviceProviders.filter(provider => {
+  const filteredProviders = mockServiceProviders.filter(provider => {
     const matchesSearch = searchTerm === '' || 
       provider.name.includes(searchTerm) || 
       provider.title.includes(searchTerm) || 
@@ -40,7 +40,7 @@ const Services = () => {
   });
 
   // Get unique locations for the filter
-  const locations = Array.from(new Set(serviceProviders.map(p => p.location)));
+  const locations = Array.from(new Set(mockServiceProviders.map(p => p.location)));
   
   // Available service types
   const serviceTypes = ['טיולים', 'פנסיון', 'טיפוח', 'אילוף', 'חתולים'];
@@ -218,13 +218,13 @@ const Services = () => {
             <div className="space-y-4">
               {filteredProviders.map((provider) => (
                 <ExpandableListItem
-                  key={provider.id}
+                  key={provider.id.toString()}
                   title={provider.name}
                   subtitle={provider.title}
                   image={provider.image}
                   badge={
                     <div className="flex gap-1">
-                      {provider.petTypes && provider.petTypes.map((petType) => (
+                      {provider.petTypes && provider.petTypes.map((petType: string) => (
                         <Badge key={petType} variant="outline" className={
                           petType === 'כלבים' 
                             ? "bg-blue-50 text-zanav-blue border-zanav-blue"
