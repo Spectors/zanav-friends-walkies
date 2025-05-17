@@ -7,12 +7,12 @@ import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { mockPets } from '@/lib/supabase/index';
+import { mockPets, Pet } from '@/lib/supabase/index';
 
 const MyPets = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [pets, setPets] = useState(mockPets);
+  const [pets, setPets] = useState<Pet[]>(mockPets);
   const [loading, setLoading] = useState(false);
 
   // For now we're using mock data instead of Supabase

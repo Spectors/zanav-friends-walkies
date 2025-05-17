@@ -3,4 +3,4 @@
 // to maintain backward compatibility with existing imports
 
 export * from './supabase/index';
-export * from './supabase/types';
+// No longer re-exporting types to avoid name conflicts

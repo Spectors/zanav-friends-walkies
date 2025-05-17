@@ -10,7 +10,7 @@ export interface Pet {
   ownerName: string;
   name: string;
   age: string;
-  type: 'dog' | 'cat' | 'other';
+  type: 'dog' | 'cat'; // Removed 'other' to match expected types
   breed: string;
   description: string;
   image: string;
@@ -33,7 +33,7 @@ export interface ServiceProvider {
   petTypes: string[];
 }
 
-// Mock data for development
+// Mock data for development - adjusted to match expected Pet type
 export const mockPets: Pet[] = [
   {
     id: '1',
@@ -101,6 +101,22 @@ export const getPets = async (userId: string) => {
 
 export const getServiceProviders = async (filters = {}) => {
   return mockServiceProviders;
+};
+
+// Mock supabase object for components that expect it
+export const supabase = {
+  auth: {
+    getSession: async () => ({ data: { session: null } }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    signOut: async () => ({})
+  },
+  from: () => ({
+    select: () => ({
+      eq: () => ({
+        single: async () => ({ data: null, error: null })
+      })
+    })
+  })
 };
 
 // For future Supabase implementation
