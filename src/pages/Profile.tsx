@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "@/hooks/use-toast";
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { mockAuth, mockDatabase, User } from '@/lib/mockData';
+import { User } from '@/lib/mockData';
 
 const Profile = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -19,22 +19,20 @@ const Profile = () => {
     phone: '',
     role: 'owner' as 'owner' | 'giver'
   });
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const getUserProfile = async () => {
+    // Get user from localStorage
+    const getUserProfile = () => {
       try {
-        const { data: sessionData } = await mockAuth.getSession();
-        
-        if (!sessionData.session) {
+        const userString = localStorage.getItem('mock_auth_user');
+        if (!userString) {
           navigate('/login');
           return;
         }
         
-        // Get full profile data
-        const userData = sessionData.session.user;
-                
+        const userData = JSON.parse(userString).user;
+        
         if (userData) {
           setUser(userData);
           setFormData({
@@ -73,19 +71,19 @@ const Profile = () => {
     try {
       if (!user) return;
       
-      // Update profile in database
-      const { error } = await mockDatabase
-        .from('users')
-        .update({
-          full_name: formData.fullName,
-          phone: formData.phone,
-          role: formData.role,
-        })
-        .eq('id', user.id);
+      // Update the user in localStorage
+      const userString = localStorage.getItem('mock_auth_user');
+      if (!userString) return;
       
-      if (error) {
-        throw error;
-      }
+      const userData = JSON.parse(userString);
+      userData.user = {
+        ...userData.user,
+        full_name: formData.fullName,
+        phone: formData.phone,
+        role: formData.role,
+      };
+      
+      localStorage.setItem('mock_auth_user', JSON.stringify(userData));
       
       toast({
         title: "פרופיל עודכן בהצלחה",
@@ -100,8 +98,13 @@ const Profile = () => {
     }
   };
   
+  const handleLogout = () => {
+    localStorage.removeItem('mock_auth_user');
+    navigate('/login');
+  };
+  
   if (isLoading) {
-    return null; // or loading state
+    return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
 
   return (
@@ -181,7 +184,7 @@ const Profile = () => {
                 <Button 
                   type="button"
                   variant="outline"
-                  onClick={() => navigate('/login')}
+                  onClick={handleLogout}
                 >
                   התנתקות
                 </Button>
