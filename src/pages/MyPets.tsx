@@ -6,33 +6,63 @@ import Footer from '@/components/Footer';
 import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { mockPets, Pet } from '@/lib/mockData';
+import { toast } from '@/hooks/use-toast';
+import { Pet, getPets } from '@/lib/mockData';
 
 const MyPets = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [pets, setPets] = useState<Pet[]>(mockPets);
-  const [loading, setLoading] = useState(false);
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // For now we're using mock data instead of a database
   useEffect(() => {
-    setLoading(false);
-  }, []);
+    const loadUserAndPets = async () => {
+      try {
+        // Get current user from localStorage
+        const userString = localStorage.getItem('mock_auth_user');
+        if (!userString) {
+          navigate('/login');
+          return;
+        }
+        
+        const userData = JSON.parse(userString);
+        setCurrentUser(userData.user);
+        
+        // Load user's pets
+        const userPets = await getPets(userData.user.id);
+        setPets(userPets);
+      } catch (error) {
+        console.error('Error loading pets:', error);
+        toast({
+          title: "שגיאה בטעינת חיות המחמד",
+          description: "לא ניתן לטעון את רשימת חיות המחמד שלך",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadUserAndPets();
+  }, [navigate]);
 
   const handleRequestService = (petId: string, serviceType: string, serviceDate: string | undefined, serviceTimeFrom: string, serviceTimeTo: string, serviceDuration: string) => {
     try {
-      // In the future, this will create a service request
-      toast({
-        title: "בקשת השירות נשלחה בהצלחה!",
-        description: "נותני שירות יוכלו להגיש הצעות בקרוב.",
+      // Navigate to service request page
+      navigate(`/request-service/${petId}`, {
+        state: {
+          petId,
+          serviceType,
+          serviceDate,
+          serviceTimeFrom,
+          serviceTimeTo,
+          serviceDuration
+        }
       });
-      
-      navigate('/dashboard');
     } catch (error: any) {
       toast({
-        title: "שגיאה בשליחת הבקשה",
-        description: error.message || "אירעה שגיאה בשליחת בקשת השירות",
+        title: "שגיאה בבקשת השירות",
+        description: error.message || "אירעה שגיאה בבקשת השירות",
         variant: "destructive",
       });
     }

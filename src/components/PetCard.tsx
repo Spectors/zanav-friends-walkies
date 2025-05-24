@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dog, Cat, Calendar, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 
 interface PetCardProps {
   pet: {
@@ -31,7 +30,6 @@ interface PetCardProps {
 }
 
 const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) => {
-  const { toast } = useToast();
   const PetIcon = () => {
     if (pet.type === 'cat') {
       return <Cat className="h-5 w-5 text-primary" />;
@@ -141,19 +139,11 @@ const PetCard: React.FC<PetCardProps> = ({ pet, viewType, onRequestService }) =>
                   ערוך פרטים
                 </Link>
               </Button>
-              {!pet.needsService ? (
-                <Button variant="default" size="sm" asChild className="flex-1">
-                  <Link to={`/request-service/${pet.id}`}>
-                    בקש שירות
-                  </Link>
-                </Button>
-              ) : (
-                <Button variant="secondary" size="sm" asChild className="flex-1">
-                  <Link to={`/request-service/${pet.id}`}>
-                    עדכן בקשה
-                  </Link>
-                </Button>
-              )}
+              <Button variant="default" size="sm" asChild className="flex-1">
+                <Link to={`/request-service/${pet.id}`}>
+                  {pet.needsService ? 'עדכן בקשה' : 'בקש שירות'}
+                </Link>
+              </Button>
             </div>
           ) : (
             pet.needsService && (

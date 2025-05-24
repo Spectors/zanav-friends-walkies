@@ -26,6 +26,24 @@ export interface Pet {
   createdAt: string;
 }
 
+export interface ServiceRequest {
+  id: string;
+  petId: string;
+  petName: string;
+  ownerId: string;
+  ownerName: string;
+  serviceType: 'walking' | 'sitting' | 'grooming' | 'training';
+  date: string;
+  timeFrom: string;
+  timeTo: string;
+  duration: number; // in minutes
+  status: 'pending' | 'accepted' | 'declined' | 'completed';
+  walkerId?: string;
+  walkerName?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface ServiceProvider {
   id: number;
   name: string;
@@ -101,33 +119,42 @@ export const mockServiceProviders: ServiceProvider[] = [
   }
 ];
 
-// Mock authentication service
-const STORAGE_KEY = 'mock_auth_user';
+// Storage keys
+const STORAGE_KEYS = {
+  AUTH_USER: 'mock_auth_user',
+  REGISTERED_USERS: 'mock_registered_users',
+  PETS: 'mock_pets_data',
+  SERVICE_REQUESTS: 'mock_service_requests'
+};
 
+// Mock authentication service
 export const mockAuth = {
   getSession: async () => {
-    const userString = localStorage.getItem(STORAGE_KEY);
+    const userString = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
     return { data: { session: userString ? JSON.parse(userString) : null } };
   },
   
   signInWithPassword: async ({ email, password }: { email: string; password: string }) => {
-    // Simple mock authentication - in real app would check credentials
     if (!email || !password) {
       return { error: { message: 'Email and password are required' } };
     }
 
-    // Create mock user
-    const user: User = {
-      id: 'mock_' + Date.now(),
-      full_name: email.split('@')[0],
-      email: email,
-      role: 'owner',
-      is_verified: true,
-      created_at: new Date().toISOString()
-    };
+    // Get registered users
+    const registeredUsersString = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+    const registeredUsers = registeredUsersString ? JSON.parse(registeredUsersString) : [];
     
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user }));
-    return { data: { user, session: { user } }, error: null };
+    // Find user by email and password
+    const foundUser = registeredUsers.find((user: any) => user.email === email && user.password === password);
+    
+    if (!foundUser) {
+      return { error: { message: 'Invalid email or password' } };
+    }
+
+    // Remove password from user object before storing
+    const { password: _, ...userWithoutPassword } = foundUser;
+    
+    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify({ user: userWithoutPassword }));
+    return { data: { user: userWithoutPassword, session: { user: userWithoutPassword } }, error: null };
   },
   
   signUp: async ({ email, password, options }: { email: string; password: string; options?: { data?: any } }) => {
@@ -135,29 +162,45 @@ export const mockAuth = {
       return { error: { message: 'Email and password are required' } };
     }
 
-    // Create mock user
-    const user: User = {
-      id: 'mock_' + Date.now(),
+    // Check if user already exists
+    const registeredUsersString = localStorage.getItem(STORAGE_KEYS.REGISTERED_USERS);
+    const registeredUsers = registeredUsersString ? JSON.parse(registeredUsersString) : [];
+    
+    const existingUser = registeredUsers.find((user: any) => user.email === email);
+    if (existingUser) {
+      return { error: { message: 'User already registered' } };
+    }
+
+    // Create new user
+    const newUser: User & { password: string } = {
+      id: 'user_' + Date.now(),
       full_name: options?.data?.full_name || email.split('@')[0],
       email: email,
       phone: options?.data?.phone,
       role: options?.data?.role || 'owner',
-      is_verified: false,
-      created_at: new Date().toISOString()
+      is_verified: true,
+      created_at: new Date().toISOString(),
+      password: password
     };
     
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ user }));
-    return { data: { user, session: { user } }, error: null };
+    // Save to registered users
+    registeredUsers.push(newUser);
+    localStorage.setItem(STORAGE_KEYS.REGISTERED_USERS, JSON.stringify(registeredUsers));
+    
+    // Remove password from user object before storing session
+    const { password: _, ...userWithoutPassword } = newUser;
+    localStorage.setItem(STORAGE_KEYS.AUTH_USER, JSON.stringify({ user: userWithoutPassword }));
+    
+    return { data: { user: userWithoutPassword, session: { user: userWithoutPassword } }, error: null };
   },
   
   signOut: async () => {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEYS.AUTH_USER);
     return { error: null };
   },
   
   onAuthStateChange: (callback: (event: string, session: any) => void) => {
-    // In a real app, this would set up event listeners
-    const user = localStorage.getItem(STORAGE_KEY);
+    const user = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
     if (user) {
       callback('SIGNED_IN', JSON.parse(user));
     }
@@ -179,19 +222,17 @@ export const mockDatabase = {
       select: () => {
         return {
           eq: (field: string, value: any) => {
-            if (table === 'users') {
-              const userString = localStorage.getItem(STORAGE_KEY);
-              if (userString) {
-                const userData = JSON.parse(userString);
-                if (userData.user.id === value) {
-                  return {
-                    single: async () => ({
-                      data: userData.user,
-                      error: null
-                    })
-                  };
-                }
-              }
+            if (table === 'pets') {
+              const petsString = localStorage.getItem(STORAGE_KEYS.PETS);
+              const pets = petsString ? JSON.parse(petsString) : [];
+              const userPets = pets.filter((pet: Pet) => pet.ownerId === value);
+              
+              return {
+                single: async () => ({
+                  data: userPets,
+                  error: null
+                })
+              };
             }
             
             return {
@@ -205,11 +246,42 @@ export const mockDatabase = {
       },
       insert: (data: any) => {
         if (table === 'pets') {
-          // In a real app, we would store this in localStorage
-          // For now, just return mock success
+          const petsString = localStorage.getItem(STORAGE_KEYS.PETS);
+          const pets = petsString ? JSON.parse(petsString) : [];
+          
+          const newPet = {
+            ...data,
+            id: 'pet_' + Date.now(),
+            createdAt: new Date().toISOString()
+          };
+          
+          pets.push(newPet);
+          localStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(pets));
+          
           return {
             select: () => ({
-              data: { ...data, id: 'mock_' + Date.now() },
+              data: newPet,
+              error: null
+            })
+          };
+        }
+        
+        if (table === 'service_requests') {
+          const requestsString = localStorage.getItem(STORAGE_KEYS.SERVICE_REQUESTS);
+          const requests = requestsString ? JSON.parse(requestsString) : [];
+          
+          const newRequest = {
+            ...data,
+            id: 'request_' + Date.now(),
+            createdAt: new Date().toISOString()
+          };
+          
+          requests.push(newRequest);
+          localStorage.setItem(STORAGE_KEYS.SERVICE_REQUESTS, JSON.stringify(requests));
+          
+          return {
+            select: () => ({
+              data: newRequest,
               error: null
             })
           };
@@ -224,10 +296,28 @@ export const mockDatabase = {
       },
       update: (data: any) => {
         return {
-          eq: () => ({
-            data: null,
-            error: null
-          })
+          eq: (field: string, value: any) => {
+            if (table === 'service_requests') {
+              const requestsString = localStorage.getItem(STORAGE_KEYS.SERVICE_REQUESTS);
+              const requests = requestsString ? JSON.parse(requestsString) : [];
+              
+              const updatedRequests = requests.map((request: ServiceRequest) => 
+                request.id === value ? { ...request, ...data } : request
+              );
+              
+              localStorage.setItem(STORAGE_KEYS.SERVICE_REQUESTS, JSON.stringify(updatedRequests));
+              
+              return {
+                data: null,
+                error: null
+              };
+            }
+            
+            return {
+              data: null,
+              error: null
+            };
+          }
         };
       }
     };
@@ -236,11 +326,9 @@ export const mockDatabase = {
     from: (bucket: string) => {
       return {
         upload: async (path: string, file: File) => {
-          // Mock file upload - in a real app this would store to localStorage
           return { data: { path }, error: null };
         },
         getPublicUrl: (path: string) => {
-          // Return a fake URL
           return { data: { publicUrl: URL.createObjectURL(new Blob()) } };
         }
       };
@@ -256,9 +344,22 @@ export const supabase = {
 
 // Helper functions
 export const getPets = async (userId: string) => {
-  return mockPets.filter(pet => pet.ownerId === userId);
+  const petsString = localStorage.getItem(STORAGE_KEYS.PETS);
+  const pets = petsString ? JSON.parse(petsString) : [];
+  return pets.filter((pet: Pet) => pet.ownerId === userId);
 };
 
 export const getServiceProviders = async (filters = {}) => {
   return mockServiceProviders;
+};
+
+export const getServiceRequests = async (userId: string, role: 'owner' | 'giver') => {
+  const requestsString = localStorage.getItem(STORAGE_KEYS.SERVICE_REQUESTS);
+  const requests = requestsString ? JSON.parse(requestsString) : [];
+  
+  if (role === 'owner') {
+    return requests.filter((request: ServiceRequest) => request.ownerId === userId);
+  } else {
+    return requests.filter((request: ServiceRequest) => request.walkerId === userId || request.status === 'pending');
+  }
 };

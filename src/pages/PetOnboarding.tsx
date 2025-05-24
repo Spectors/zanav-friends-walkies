@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { mockDatabase } from '@/lib/mockData';
@@ -18,8 +19,20 @@ const PetOnboarding = () => {
   const [petDescription, setPetDescription] = useState('');
   const [petImage, setPetImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Get current user from localStorage
+    const userString = localStorage.getItem('mock_auth_user');
+    if (!userString) {
+      navigate('/login');
+      return;
+    }
+    
+    const userData = JSON.parse(userString);
+    setCurrentUser(userData.user);
+  }, [navigate]);
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -37,6 +50,16 @@ const PetOnboarding = () => {
         toast({
           title: "שגיאה בשמירת פרטי החיה",
           description: "יש למלא את כל השדות הנדרשים",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!currentUser) {
+        toast({
+          title: "שגיאה בשמירת פרטי החיה",
+          description: "לא נמצא משתמש מחובר",
           variant: "destructive",
         });
         setIsSubmitting(false);
@@ -71,8 +94,10 @@ const PetOnboarding = () => {
         breed: petBreed,
         description: petDescription,
         image: imageUrl,
-        needs_walking: petType === 'dog',
-        owner_id: 'user123' // In a real app, this would be the user's ID
+        needsService: false,
+        serviceType: '',
+        ownerId: currentUser.id,
+        ownerName: currentUser.full_name
       }).select();
       
       if (error) {
