@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Filter, Heart } from 'lucide-react';
-import { mockPets } from '@/lib/mockData';
 import type { Database } from '@/integrations/supabase/types';
 
 type Pet = Database['public']['Tables']['pets']['Row'];
@@ -16,25 +15,41 @@ const AvailablePets = () => {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterAge, setFilterAge] = useState<string>('all');
 
-  // For now using mock data since we're focusing on auth first
-  const pets: Pet[] = mockPets.map(pet => ({
-    id: pet.id,
-    name: pet.name,
-    type: pet.type as 'dog' | 'cat',
-    breed: pet.breed || '',
-    birth_date: pet.birthDate || null,
-    description: pet.description || '',
-    avatar: pet.image || '',
-    owner_id: pet.ownerId,
-    location: null,
-    safe_zone: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }));
+  // Mock data for now - replace with real API call later
+  const mockPets: Pet[] = [
+    {
+      id: '1',
+      name: 'מקס',
+      type: 'dog',
+      breed: 'גולדן רטריבר',
+      birth_date: '2021-05-15',
+      description: 'כלב ידידותי ואוהב משחקים',
+      avatar: null,
+      owner_id: 'mock-owner-1',
+      location: null,
+      safe_zone: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: '2',
+      name: 'לונה',
+      type: 'cat',
+      breed: 'חתול פרסי',
+      birth_date: '2020-08-20',
+      description: 'חתולה שקטה ואוהבת ליטופים',
+      avatar: null,
+      owner_id: 'mock-owner-2',
+      location: null,
+      safe_zone: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
 
-  const filteredPets = pets.filter(pet => {
+  const filteredPets = mockPets.filter(pet => {
     const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         pet.breed.toLowerCase().includes(searchTerm.toLowerCase());
+                         (pet.breed || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || pet.type === filterType;
     
     return matchesSearch && matchesType;

@@ -82,9 +82,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Clean up any existing auth state
-      await supabase.auth.signOut();
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -105,9 +102,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
-      // Clean up any existing auth state
-      await supabase.auth.signOut();
-      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -120,17 +114,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (data.user && !error) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert({
-            id: data.user.id,
-            full_name: fullName,
-            email: data.user.email,
-            role: 'owner'
-          });
+        // Try to create user profile manually if the trigger doesn't work
+        try {
+          const { error: profileError } = await supabase
+            .from('users')
+            .upsert({
+              id: data.user.id,
+              full_name: fullName,
+              email: data.user.email,
+              role: 'owner'
+            }, {
+              onConflict: 'id'
+            });
 
-        if (profileError) {
+          if (profileError) {
+            console.error('Error creating user profile:', profileError);
+          }
+        } catch (profileError) {
           console.error('Error creating user profile:', profileError);
         }
       }
