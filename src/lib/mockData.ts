@@ -1,16 +1,8 @@
 
-// Mock pet type
-export interface Pet {
-  id: string;
-  name: string;
-  type: 'dog' | 'cat' | 'bird' | 'other';
-  breed?: string;
-  age?: number;
-  weight?: number;
-  description?: string;
-  owner_id: string;
-  created_at: string;
-}
+import type { Database } from '@/integrations/supabase/types';
+
+// Use the correct Pet type from Supabase
+export type Pet = Database['public']['Tables']['pets']['Row'];
 
 // Mock services data
 export const mockServices = [
@@ -112,7 +104,16 @@ export const mockDatabase = {
     insert: (data: any) => ({
       select: async () => {
         if (table === 'pets') {
-          const newPet = { ...data, id: Date.now().toString() };
+          const newPet: Pet = {
+            ...data,
+            id: Date.now().toString(),
+            avatar: data.avatar || null,
+            birth_date: data.birth_date || null,
+            location: data.location || null,
+            safe_zone: data.safe_zone || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
           mockDatabase.pets.push(newPet);
           return { data: [newPet], error: null };
         }
