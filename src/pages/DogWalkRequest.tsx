@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -29,6 +28,19 @@ const DogWalkRequest = () => {
     notes: '',
     location: ''
   });
+
+  // Helper function to calculate age from birth date
+  const calculateAge = (birthDate: string | null): number => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -151,6 +163,8 @@ const DogWalkRequest = () => {
   if (!selectedPet) {
     return <div className="flex items-center justify-center min-h-screen">טוען...</div>;
   }
+
+  const petAge = calculateAge(selectedPet.birth_date);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -303,7 +317,7 @@ const DogWalkRequest = () => {
                       </div>
                       <h3 className="font-semibold text-lg">{selectedPet.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {selectedPet.breed} • גיל {selectedPet.age}
+                        {selectedPet.breed || 'גזע לא ידוע'} • גיל {petAge}
                       </p>
                     </div>
                     
