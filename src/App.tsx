@@ -1,58 +1,59 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Services from "./pages/Services";
-import Dashboard from "./pages/Dashboard";
-import PetOnboarding from "./pages/PetOnboarding";
-import MyPets from "./pages/MyPets";
-import AvailablePets from "./pages/AvailablePets";
-import Booking from "./pages/Booking";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-import ServiceDetails from "./pages/ServiceDetails";
-import Profile from "./pages/Profile";
-import ServiceOffer from "./pages/ServiceOffer";
-import RequestService from "./pages/RequestService";
+import { Suspense } from 'react';
+import { Toaster } from '@/components/ui/toaster';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/hooks/useAuth';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Index from './pages/Index';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Profile from './pages/Profile';
+import MyPets from './pages/MyPets';
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/pet-onboarding" element={<PetOnboarding />} />
-            <Route path="/my-pets" element={<MyPets />} />
-            <Route path="/available-pets" element={<AvailablePets />} />
-            <Route path="/booking/new" element={<Booking />} />
-            <Route path="/booking/:serviceId" element={<Booking />} />
-            <Route path="/service/:id" element={<ServiceDetails />} />
-            <Route path="/service-offer" element={<ServiceOffer />} />
-            <Route path="/request-service/:petId" element={<RequestService />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="*" element={<NotFound />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-pets"
+              element={
+                <ProtectedRoute>
+                  <MyPets />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
-  );
-}
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;

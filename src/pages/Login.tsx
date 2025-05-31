@@ -1,183 +1,100 @@
-import { useState } from 'react';
+
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from '@/hooks/use-toast';
-import { Dog, Cat } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { mockAuth } from '@/lib/mockData';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 const Login = () => {
-  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [userType, setUserType] = useState<'owner' | 'giver'>('owner');
-  const [serviceType, setServiceType] = useState('walking');
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
+    setLoading(true);
+
     try {
-      // Basic validation
-      if (!formData.email || !formData.password) {
-        toast({
-          title: "שגיאה",
-          description: "יש למלא את כל השדות",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // Sign in with mock auth
-      const { data, error } = await mockAuth.signInWithPassword({
-        email: formData.email,
-        password: formData.password,
-      });
+      const { error } = await signIn(email, password);
       
       if (error) {
-        throw error;
-      }
-      
-      if (data.user) {        
         toast({
-          title: "התחברות הצליחה!",
-          description: "ברוכים השבים לזאנב+",
+          title: "שגיאה בהתחברות",
+          description: error.message,
+          variant: "destructive",
         });
-        
-        navigate('/dashboard');
+      } else {
+        navigate('/');
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "שגיאה בהתחברות",
-        description: error.message || "אירעה שגיאה בתהליך ההתחברות",
+        description: "אירעה שגיאה לא צפויה",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      
-      <main className="flex-grow flex items-center justify-center py-12">
-        <div className="w-full max-w-md mx-auto px-4">
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="flex">
-                <Dog className="h-10 w-10 text-zanav-blue" />
-                <Cat className="h-10 w-10 text-zanav-blue -ml-2" />
-              </div>
-            </div>
-            <h1 className="text-3xl font-bold mb-2">ברוכים השבים</h1>
-            <p className="text-gray-600">התחברו לחשבון שלכם</p>
-          </div>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold">ברוכים הבאים לזנב+</CardTitle>
+          <CardDescription>התחברו לחשבון שלכם</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">דואר אלקטרוני</Label>
+              <Label htmlFor="email">אימייל</Label>
               <Input
                 id="email"
-                name="email"
                 type="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
-            
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">סיסמה</Label>
-                <Link to="/forgot-password" className="text-sm text-zanav-blue hover:underline">
-                  שכחת סיסמה?
-                </Link>
-              </div>
+              <Label htmlFor="password">סיסמה</Label>
               <Input
                 id="password"
-                name="password"
                 type="password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={loading}
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label>סוג משתמש</Label>
-              <div className="flex gap-4">
-                <Button
-                  type="button"
-                  variant={userType === 'owner' ? 'default' : 'outline'}
-                  className="flex-1"
-                  onClick={() => setUserType('owner')}
-                >
-                  בעל חיית מחמד
-                </Button>
-                <Button
-                  type="button"
-                  variant={userType === 'giver' ? 'default' : 'outline'}
-                  className="flex-1"
-                  onClick={() => setUserType('giver')}
-                >
-                  נותן שירות
-                </Button>
-              </div>
-            </div>
-            
-            {userType === 'giver' && (
-              <div className="space-y-2">
-                <Label htmlFor="serviceType">סוג שירות</Label>
-                <Select value={serviceType} onValueChange={setServiceType}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="בחר סוג שירות" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="walking">טיולים 🐕</SelectItem>
-                    <SelectItem value="sitting">פנסיון 🏠</SelectItem>
-                    <SelectItem value="grooming">טיפוח ✂️</SelectItem>
-                    <SelectItem value="training">אילוף 🎓</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            <Button 
-              type="submit" 
-              className="w-full bg-zanav-blue hover:bg-zanav-blue/90"
-              disabled={isLoading}
-            >
-              {isLoading ? 'מתחבר...' : 'התחברות'}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  מתחבר...
+                </>
+              ) : (
+                'התחבר'
+              )}
             </Button>
           </form>
-          
-          <div className="mt-6 text-center">
-            <p>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600">
               אין לך חשבון?{' '}
-              <Link to="/register" className="text-zanav-blue hover:underline">
-                הרשמה
+              <Link to="/register" className="text-primary hover:underline">
+                הירשם כאן
               </Link>
             </p>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
+        </CardContent>
+      </Card>
     </div>
   );
 };
