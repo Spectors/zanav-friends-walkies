@@ -19,21 +19,61 @@ const Register = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!fullName.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הזן שם מלא",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!email.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הזן כתובת אימייל",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "שגיאה",
+        description: "הסיסמה צריכה להיות באורך של לפחות 6 תווים",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await signUp(email, password, fullName);
       
       if (error) {
+        let errorMessage = "שגיאה לא ידועה";
+        
+        if (error.message.includes('User already registered')) {
+          errorMessage = "המשתמש כבר רשום במערכת";
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = "כתובת האימייל לא תקינה";
+        } else if (error.message.includes('Password')) {
+          errorMessage = "הסיסמה לא תקינה";
+        } else {
+          errorMessage = error.message;
+        }
+        
         toast({
           title: "שגיאה ברישום",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
       } else {
         toast({
           title: "נרשמת בהצלחה!",
-          description: "אנא בדוק את האימייל שלך לאימות החשבון",
+          description: "ניתן כעת להתחבר לחשבון שלך",
         });
         navigate('/login');
       }
@@ -49,7 +89,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">הצטרפו לזנב+</CardTitle>
@@ -66,6 +106,7 @@ const Register = () => {
                 onChange={(e) => setFullName(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="הזן שם מלא"
               />
             </div>
             <div className="space-y-2">
@@ -77,6 +118,7 @@ const Register = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="example@email.com"
               />
             </div>
             <div className="space-y-2">
@@ -89,6 +131,7 @@ const Register = () => {
                 required
                 disabled={loading}
                 minLength={6}
+                placeholder="לפחות 6 תווים"
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>

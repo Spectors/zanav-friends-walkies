@@ -18,20 +18,48 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הזן כתובת אימייל",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!password.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הזן סיסמה",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await signIn(email, password);
       
       if (error) {
+        let errorMessage = "שגיאה בהתחברות";
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "אימייל או סיסמה שגויים";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "יש לאמת את כתובת האימייל";
+        } else {
+          errorMessage = error.message;
+        }
+        
         toast({
           title: "שגיאה בהתחברות",
-          description: error.message,
+          description: errorMessage,
           variant: "destructive",
         });
-      } else {
-        navigate('/');
       }
+      // Success handled in useAuth with redirect
     } catch (error) {
       toast({
         title: "שגיאה בהתחברות",
@@ -44,7 +72,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">ברוכים הבאים לזנב+</CardTitle>
@@ -61,6 +89,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="example@email.com"
               />
             </div>
             <div className="space-y-2">
@@ -72,6 +101,7 @@ const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={loading}
+                placeholder="הזן סיסמה"
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
