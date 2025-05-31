@@ -50,19 +50,23 @@ const Register = () => {
     setLoading(true);
 
     try {
+      console.log('Starting signup process...');
       const { error } = await signUp(email, password, fullName);
       
       if (error) {
+        console.error('Signup error:', error);
         let errorMessage = "שגיאה לא ידועה";
         
-        if (error.message.includes('User already registered')) {
+        if (error.message?.includes('User already registered')) {
           errorMessage = "המשתמש כבר רשום במערכת";
-        } else if (error.message.includes('Invalid email')) {
+        } else if (error.message?.includes('Invalid email')) {
           errorMessage = "כתובת האימייל לא תקינה";
-        } else if (error.message.includes('Password')) {
+        } else if (error.message?.includes('Password')) {
           errorMessage = "הסיסמה לא תקינה";
+        } else if (error.message?.includes('Database error')) {
+          errorMessage = "שגיאה בדאטאבייס - נסה שוב מאוחר יותר";
         } else {
-          errorMessage = error.message;
+          errorMessage = error.message || "שגיאה לא ידועה";
         }
         
         toast({
@@ -71,6 +75,7 @@ const Register = () => {
           variant: "destructive",
         });
       } else {
+        console.log('Signup successful');
         toast({
           title: "נרשמת בהצלחה!",
           description: "ניתן כעת להתחבר לחשבון שלך",
@@ -78,6 +83,7 @@ const Register = () => {
         navigate('/login');
       }
     } catch (error) {
+      console.error('Unexpected signup error:', error);
       toast({
         title: "שגיאה ברישום",
         description: "אירעה שגיאה לא צפויה",

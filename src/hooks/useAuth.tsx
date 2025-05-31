@@ -19,6 +19,29 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// פונקציה לניקוי מצב האימות
+const cleanupAuthState = () => {
+  try {
+    // ניקוי localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // ניקוי sessionStorage אם קיים
+    if (typeof sessionStorage !== 'undefined') {
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith('supabase.auth.') || key.includes('sb-')) {
+          sessionStorage.removeItem(key);
+        }
+      });
+    }
+  } catch (error) {
+    console.warn('Error cleaning auth state:', error);
+  }
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -82,6 +105,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // נקה מצב אימות קיים
+      cleanupAuthState();
+      
+      // נסה להתנתק גלובלית
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // המשך גם אם זה נכשל
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -102,6 +135,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, fullName: string) => {
     try {
+      // נקה מצב אימות קיים
+      cleanupAuthState();
+      
+      // נסה להתנתק גלובלית
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // המשך גם אם זה נכשל
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -114,7 +157,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (data.user && !error) {
-        // Try to create user profile manually if the trigger doesn't work
+        // נסה ליצור פרופיל משתמש באופן ידני
         try {
           const { error: profileError } = await supabase
             .from('users')
@@ -122,7 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               id: data.user.id,
               full_name: fullName,
               email: data.user.email,
-              role: 'owner'
+              // השמט את השדה role כדי להשתמש בברירת המחדל
             }, {
               onConflict: 'id'
             });
@@ -143,14 +186,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // נקה מצב אימות
+      cleanupAuthState();
+      
       await supabase.auth.signOut({ scope: 'global' });
       setProfile(null);
       setUser(null);
       setSession(null);
+      
       // Force page reload for clean state
       window.location.href = '/login';
     } catch (error) {
       console.error('Error signing out:', error);
+      // גם אם יש שגיאה, ננסה לנקות ולהפנות
+      cleanupAuthState();
+      window.location.href = '/login';
     }
   };
 
