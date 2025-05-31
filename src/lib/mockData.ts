@@ -1,5 +1,18 @@
 
-// Mock data for services - this is a simplified version for the pages that still reference it
+// Mock pet type
+export interface Pet {
+  id: string;
+  name: string;
+  type: 'dog' | 'cat' | 'bird' | 'other';
+  breed?: string;
+  age?: number;
+  weight?: number;
+  description?: string;
+  owner_id: string;
+  created_at: string;
+}
+
+// Mock services data
 export const mockServices = [
   {
     id: '1',
@@ -33,36 +46,90 @@ export const mockServiceProviders = [
   {
     id: '1',
     name: 'יוסי כהן',
-    services: ['הליכת כלבים'],
+    title: 'מטייל כלבים מקצועי',
+    services: ['טיולים'],
     location: 'תל אביב',
     rating: 4.8,
-    phone: '050-1234567'
+    reviews: 25,
+    phone: '050-1234567',
+    image: 'https://placedog.net/400/300',
+    petTypes: ['כלבים'],
+    availability: 'זמין היום',
+    price: 60
   },
   {
     id: '2',
     name: 'רחל לוי',
+    title: 'מטפחת חיות מחמד',
     services: ['טיפוח'],
     location: 'חיפה',
     rating: 4.9,
-    phone: '052-7654321'
+    reviews: 18,
+    phone: '052-7654321',
+    image: 'https://placedog.net/400/301',
+    petTypes: ['כלבים', 'חתולים'],
+    availability: 'זמין מחר',
+    price: 120
+  },
+  {
+    id: '3',
+    name: 'דוד מילר',
+    title: 'מדריך אילוף מקצועי',
+    services: ['אילוף'],
+    location: 'ירושלים',
+    rating: 4.7,
+    reviews: 32,
+    phone: '053-9876543',
+    image: 'https://placedog.net/400/302',
+    petTypes: ['כלבים'],
+    availability: 'זמין השבוע',
+    price: 150
   }
 ];
 
-// Mock pet type
-export interface Pet {
-  id: string;
-  name: string;
-  type: 'dog' | 'cat' | 'bird' | 'other';
-  breed?: string;
-  age?: number;
-  weight?: number;
-  owner_id: string;
-  created_at: string;
-}
-
-// Mock database object
+// Mock database object with proper methods
 export const mockDatabase = {
-  pets: [] as Pet[]
+  pets: [] as Pet[],
+  
+  // Mock storage methods
+  storage: {
+    from: (bucket: string) => ({
+      upload: async (path: string, file: File) => {
+        // Mock successful upload
+        return {
+          data: { path: `${bucket}/${path}` },
+          error: null
+        };
+      },
+      getPublicUrl: (path: string) => ({
+        data: { publicUrl: `https://mock-storage.com/${path}` }
+      })
+    })
+  },
+  
+  // Mock database query methods
+  from: (table: string) => ({
+    insert: (data: any) => ({
+      select: async () => {
+        if (table === 'pets') {
+          const newPet = { ...data, id: Date.now().toString() };
+          mockDatabase.pets.push(newPet);
+          return { data: [newPet], error: null };
+        }
+        if (table === 'service_requests') {
+          return { data: [{ ...data, id: Date.now().toString() }], error: null };
+        }
+        return { data: [], error: null };
+      }
+    }),
+    select: async () => ({ data: mockDatabase.pets, error: null }),
+    eq: (column: string, value: any) => ({
+      select: async () => {
+        const filtered = mockDatabase.pets.filter(pet => pet[column as keyof Pet] === value);
+        return { data: filtered, error: null };
+      }
+    })
+  })
 };
 
 // Mock function to get pets

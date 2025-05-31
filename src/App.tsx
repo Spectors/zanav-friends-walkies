@@ -13,6 +13,8 @@ import Profile from './pages/Profile';
 import MyPets from './pages/MyPets';
 import Services from './pages/Services';
 import Dashboard from './pages/Dashboard';
+import PetOnboarding from './pages/PetOnboarding';
+import DogWalkRequest from './pages/DogWalkRequest';
 
 const queryClient = new QueryClient();
 
@@ -29,8 +31,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/my-pets" element={<MyPets />} />
+            <Route path="/pets/new" element={<PetOnboarding />} />
             <Route path="/services" element={<Services />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/request-service/:petId" element={<DogWalkRequest />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

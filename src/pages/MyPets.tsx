@@ -8,10 +8,7 @@ import PetCard from '@/components/PetCard';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { getUserPets } from '@/lib/supabaseApi';
-import type { Database } from '@/integrations/supabase/types';
-
-type Pet = Database['public']['Tables']['pets']['Row'];
+import { getPets, Pet } from '@/lib/mockData';
 
 const MyPets = () => {
   const navigate = useNavigate();
@@ -21,20 +18,15 @@ const MyPets = () => {
 
   useEffect(() => {
     const loadPets = async () => {
-      if (!user) return;
+      if (!user) {
+        // If no user, show empty state but don't redirect
+        setLoading(false);
+        return;
+      }
       
       try {
-        const { data, error } = await getUserPets(user.id);
-        if (error) {
-          console.error('Error loading pets:', error);
-          toast({
-            title: "שגיאה בטעינת חיות המחמד",
-            description: "לא ניתן לטעון את רשימת חיות המחמד שלך",
-            variant: "destructive",
-          });
-        } else {
-          setPets(data || []);
-        }
+        const userPets = await getPets(user.id);
+        setPets(userPets);
       } catch (error) {
         console.error('Error loading pets:', error);
         toast({
@@ -50,6 +42,14 @@ const MyPets = () => {
     loadPets();
   }, [user]);
 
+  const handleAddPet = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    navigate('/pets/new');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -60,7 +60,7 @@ const MyPets = () => {
               <h1 className="text-3xl font-bold">החיות שלי</h1>
               <p className="text-muted-foreground">נהל את חיות המחמד שלך</p>
             </div>
-            <Button onClick={() => navigate('/pets/new')} className="flex items-center gap-2">
+            <Button onClick={handleAddPet} className="flex items-center gap-2">
               <Plus size={16} />
               הוסף חיה חדשה
             </Button>
@@ -68,11 +68,17 @@ const MyPets = () => {
 
           {loading ? (
             <p>טוען...</p>
+          ) : !user ? (
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-semibold mb-2">התחבר כדי לראות את החיות שלך</h2>
+              <p className="text-muted-foreground mb-6">צריך להתחבר כדי לנהל חיות מחמד</p>
+              <Button onClick={() => navigate('/login')}>התחבר</Button>
+            </div>
           ) : pets.length === 0 ? (
             <div className="text-center py-12">
               <h2 className="text-2xl font-semibold mb-2">אין לך חיות מחמד עדיין</h2>
               <p className="text-muted-foreground mb-6">הוסף את החיה הראשונה שלך כדי להתחיל</p>
-              <Button onClick={() => navigate('/pets/new')}>הוסף חיה חדשה</Button>
+              <Button onClick={handleAddPet}>הוסף חיה חדשה</Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
